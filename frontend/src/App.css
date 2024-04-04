@@ -1,0 +1,49 @@
+#root {
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.searchForm {
+  background: lightgrey;
+  border-style: solid;
+  border-radius: 4px;
+  border-color: rgb(8, 8, 80);
+  padding: 10px;
+  margin-bottom: 10px;
+  display: inline-block;
+}
+button {
+  margin-left: 15px;
+  padding: 5px;
+}
+
+.searchResult {
+  color: rgb(32, 32, 32);
+  padding: 1em 0.5em;
+  font-size: 16px;
+  margin-left: 20px;
+  margin-right: auto;
+  background: rgb(239, 240, 243);
+  flex-shrink: 1;
+}
+.searchResult:hover {
+  cursor: pointer;
+  filter: drop-shadow(0 0 0.5em #252746aa);
+}
+
+table, th, td {
+  background: rgb(210, 221, 247);
+  font-size: 15px;
+  border-style: solid;
+  border-width: 1px;
+  border-collapse: collapse;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+.nameColumn {
+  font-size: 17px;
+}
+.percColumn {
+  white-space: nowrap;
+}
