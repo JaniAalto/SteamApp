@@ -26,7 +26,8 @@ app.get('/getnews', function (req, res) {
 app.get('/getachievs', function (req, res) {
   const appId = req.query.appId
   //console.log("appId", appId)
-  const url = `http://api.steampowered.com/ISteamUserStats/GetGlobalAchievementPercentagesForApp/v0002/?gameid=${appId}`
+  const url = `http://api.steampowered.com/ISteamUserStats/GetGlobalAchievementPercentagesForApp/v0002/
+?key=${apiKey}&gameid=${appId}`
 
   axios.get(url)
   .then(response => {

@@ -1,49 +1,78 @@
 #root {
   max-width: 1600px;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 2em;
 }
 
+section {
+  display: flex;
+  flex-direction: row;
+}
+
+.searchView {
+  max-width: 400px;
+  margin: 10px;
+  flex: 1;
+}
 .searchForm {
   background: lightgrey;
   border-style: solid;
   border-radius: 4px;
   border-color: rgb(8, 8, 80);
-  padding: 10px;
-  margin-bottom: 10px;
+  padding: 0.7em;
+  margin-bottom: 0.6em;
   display: inline-block;
 }
-button {
-  margin-left: 15px;
-  padding: 5px;
+input {
+  font-size: 16px;
 }
-
+button {
+  margin-left: 1em;
+  padding: 0.5em;
+}
 .searchResult {
   color: rgb(32, 32, 32);
   padding: 1em 0.5em;
   font-size: 16px;
-  margin-left: 20px;
-  margin-right: auto;
+  margin-left: 1em;
   background: rgb(239, 240, 243);
-  flex-shrink: 1;
 }
 .searchResult:hover {
   cursor: pointer;
   filter: drop-shadow(0 0 0.5em #252746aa);
 }
 
+hr {
+  margin-left: 0.5em;
+  margin-right: 1em;
+}
+
+.sortSelect {
+  float: right;
+}
+.achievementView {
+  margin: 10px;
+  flex: 2;
+}
 table, th, td {
   background: rgb(210, 221, 247);
   font-size: 15px;
   border-style: solid;
   border-width: 1px;
   border-collapse: collapse;
+  margin-top: 1em;
   padding: 10px;
-  margin-bottom: 10px;
 }
 .nameColumn {
   font-size: 17px;
 }
 .percColumn {
   white-space: nowrap;
+}
+
+.searchMsg {
+  margin: 1em;
+}
+.achievementMsg {
+  margin: 1em;
 }
