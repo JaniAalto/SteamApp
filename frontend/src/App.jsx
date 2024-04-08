@@ -142,7 +142,7 @@ function App() {
     // searches through all possible Steam games in batches of 10000 (max would be 50000)
     // batch size doesn't affect search speed much, 10000 updates UI fairly often and thus looks responsive
     do {
-      const response = await axios.get(`http://localhost:3000/getapplist/?max_results=10000&last_appid=${lastAppId}`)
+      const response = await axios.get(`/api/getapplist/?max_results=10000&last_appid=${lastAppId}`)
         .catch(error => {
           console.log(error)
         })
@@ -169,7 +169,7 @@ function App() {
   }
 
   const fetchAchievements = (appId, appName) => {
-    axios.get(`http://localhost:3000/getachievs/?appId=${appId}`)
+    axios.get(`/api/getachievs/?appId=${appId}`)
       .then(response => {
         setPercentages(response.data)
         //console.log("setPercentages(response.data)", response.data)
@@ -179,7 +179,7 @@ function App() {
         console.log(error)
         setAchievementMsg("No achievements found")
       })
-    axios.get(`http://localhost:3000/getgameinfo/?appId=${appId}`)
+    axios.get(`/api/getgameinfo/?appId=${appId}`)
       .then(response => {
         setGameInfo(response.data)
         //console.log("setGameInfo(response.data)", response.data)
