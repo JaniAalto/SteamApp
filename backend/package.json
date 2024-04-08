@@ -6,6 +6,9 @@
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
+    "build": "cd frontend && npm run build",
+    "build-full": "npm run install-full && npm run build",
+    "install-full": "npm install && cd frontend && npm install",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Jani Aalto",

@@ -5,6 +5,8 @@ const axios = require('axios')
 const cors = require('cors')
 
 app.use(cors())
+app.use(express.static('frontend/dist'))
+
 const apiKey = process.env.APIKEY
 
 
@@ -76,7 +78,7 @@ max_results=${max_results}&last_appid=${last_appid}`
 })
 
 
-const port = process.env.PORT
+const port = process.env.PORT || 3000
 app.listen(port, () => {
   console.log(`Server running on port ${port}`)
 })
