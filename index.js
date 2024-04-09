@@ -11,21 +11,6 @@ const apiKey = process.env.APIKEY
 const baseUrl = 'https://api.steampowered.com'
 
 
-app.get('/api/getnews', function (req, res) {
-  const appId = req.query.appId
-  //console.log("appId", appId)
-  const url = `${baseUrl}/ISteamNews/GetNewsForApp/v0002/?appid=${appId}&count=3&maxlength=300&format=json`
-  
-  axios.get(url)
-  .then(response => {
-    console.log(response.data)
-    res.json(response.data)
-  })
-  .catch(error => {
-    console.log(error.response.status + " " + error.response.statusText)
-  })
-})
-
 app.get('/api/getachievs', function (req, res) {
   const appId = req.query.appId
   //console.log("appId", appId)
@@ -73,6 +58,24 @@ app.get('/api/getapplist', function (req, res) {
   .catch(error => {
     console.log(error.response.status + " " + error.response.statusText)
     res.status(error.response.status).send({ error: error.response.statusText })
+  })
+})
+
+app.get('/api/getnews', function (req, res) {
+  const appId = req.query.appId
+  const count = req.query.count
+  const maxlength = req.query.maxlength
+  //console.log("appId", appId)
+  const url = `${baseUrl}/ISteamNews/GetNewsForApp/v0002/?appid=${appId}&count=${count}&maxlength=${maxlength}
+&format=json`
+  
+  axios.get(url)
+  .then(response => {
+    //console.log(response.data)
+    res.json(response.data)
+  })
+  .catch(error => {
+    console.log(error.response.status + " " + error.response.statusText)
   })
 })
 

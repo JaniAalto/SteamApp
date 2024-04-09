@@ -51,7 +51,7 @@ hr {
   float: right;
 }
 .achievementView {
-  margin: 10px;
+  margin: 1em;
   flex: 2;
 }
 table, th, td {
@@ -70,9 +70,21 @@ table, th, td {
   white-space: nowrap;
 }
 
+.newsView {
+  margin: 1em;
+  flex: 2;
+}
+.newsItem {
+  margin: 1em;
+  padding: 1em;
+  background: rgb(227, 218, 247);
+  border-style: dashed;
+  border-width: 1px;
+}
+
 .searchMsg {
   margin: 1em;
 }
-.achievementMsg {
+.resultMsg {
   margin: 1em;
 }
