@@ -64,10 +64,8 @@ app.get('/api/getapplist', function (req, res) {
 app.get('/api/getnews', function (req, res) {
   const appId = req.query.appId
   const count = req.query.count
-  const maxlength = req.query.maxlength
   //console.log("appId", appId)
-  const url = `${baseUrl}/ISteamNews/GetNewsForApp/v0002/?appid=${appId}&count=${count}&maxlength=${maxlength}
-&format=json`
+  const url = `${baseUrl}/ISteamNews/GetNewsForApp/v0002/?appid=${appId}&count=${count}&format=json`
   
   axios.get(url)
   .then(response => {

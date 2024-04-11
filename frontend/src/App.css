@@ -69,6 +69,10 @@ table, th, td {
 .percColumn {
   white-space: nowrap;
 }
+.tabButton {
+  background: lightgrey;
+  min-width: 100px;
+}
 
 .newsView {
   margin: 1em;
@@ -80,6 +84,23 @@ table, th, td {
   background: rgb(227, 218, 247);
   border-style: dashed;
   border-width: 1px;
+}
+.newsItem:hover {
+  cursor: pointer;
+  filter: drop-shadow(0 0 0.5em #252746aa);
+}
+
+dialog {
+  margin: auto;
+  width: 50%;
+  padding: 1em;
+}
+::backdrop {
+  background: rgb(0, 0, 0);
+  opacity: 0.5;
+}
+.closeButton {
+  float: right;
 }
 
 .searchMsg {

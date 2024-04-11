@@ -19,7 +19,7 @@ const SearchForm = ({ search, searchTerm, handleInputChange, message }) => {
   )
 }
 
-// to-do: make only games with achiev data clickable (difficult because data is only searched for after clicking)
+// to-do: make only games with achievement data or news clickable (?)
 const SearchResults = ({ searchResult, fetchInformation }) => {
   let resultList = []
 
@@ -98,8 +98,8 @@ const Achievements = ({ gameName, gameInfoList, percList, showNews }) => {
             <option value='percentage'>Sort by percentage</option>
             <option value='alphabetical'>Sort alphabetically</option>
           </select>
+          <button className='tabButton' onClick={showNews}>NEWS</button>
           <h1>{gameName}</h1>
-          <button onClick={showNews}>show news</button>
         </div>
         <table><tbody>
           {renderedList.map(stat => <tr key={stat.name}>
@@ -114,28 +114,90 @@ const Achievements = ({ gameName, gameInfoList, percList, showNews }) => {
   )
 }
 
-// to-do: improve this view, create pop-outs that let you read the full text of the article
+// to-do: add a "load more news" button
 const News = ({ newsList, gameName, showAchievements }) => {
   //console.log("newsList", newsList)
-  if (newsList.length === 0) {
+  const [newsItem, setNewsItem] = useState("")
+
+  if (newsList.length === 0)
     return (<p className='resultMsg'><b>No news found</b></p>)
+
+  let dialog = document.querySelector('dialog')  // needs to be done twice...
+  const showNewsModal = (item) => {
+    setNewsItem(item)
+    //console.log("newsItem", item)
+    dialog = document.querySelector('dialog')  // ...for correct functioning
+    dialog.showModal()
+  }
+
+  const convertDate = (date) => {
+    if (date)
+      return new Date(date * 1000).toJSON().substring(0, 10).replace("-", "/").replace("-", "/")
+    else
+      return ""
+  }
+
+  const shortenText = (text) => {
+    let shortenedText = ""
+    if (text.length > 400) {
+      shortenedText = text.substring(0, 400) + "..."
+      return shortenedText
+    }
+    return text
+  }
+
+  // to-do: fix the formatting of articles that use BBCode tags
+  // to-do: fix image resizing
+  const parseContent = (text) => {
+    const newsContent = document.getElementById('content')
+    if (newsContent) {
+      newsContent.innerText = ""
+      newsContent.insertAdjacentHTML("beforeend", text)
+
+      const images = newsContent.querySelectorAll('img')
+      //console.log("images", images)
+      if (images) {
+        images.forEach((image) => {
+          //console.log("image size", image.naturalWidth, " ", image.naturalHeight)
+          if (image.naturalWidth > 700 || image.naturalHeight > 700) {
+            image.width = image.naturalWidth / 2
+            image.height = image.naturalHeight / 2
+            //console.log("resized")
+          }
+        }
+      )}
+      /*
+      const image = newsContent.querySelector('img')
+      if (image) {
+        if (image.width > 700 || image.height > 700) {
+          image.width = image.width / 2
+          image.height = image.height / 2
+        }
+      }*/
+    }
   }
 
   return (
-    <>
-      <div className='newsView'>
-        <h1>{gameName}</h1>
-        <button onClick={showAchievements}>show achievements</button>
-        <div>
-          {newsList.map(item => <div key={item.gid} className='newsItem'>
-            <div>{item.feedlabel} — {new Date(item.date*1000).toDateString()}</div>
-            <hr />
-            <p><b>{item.title}</b></p>
-            <p>{item.contents}</p>
-          </div>)}
-        </div>
+    <div className='newsView'>
+      <button className='tabButton' onClick={showAchievements}>ACHIEVEMENTS</button>
+      <h1>{gameName}</h1>
+      <div>
+        {newsList.map(item => <div key={item.gid} className='newsItem'
+          onClick={() => showNewsModal(item)}>
+          <div>{item.feedlabel} — {convertDate(item.date)}</div>
+          <hr />
+          <p><b>{item.title}</b></p>
+          <p>{shortenText(item.contents)}</p>
+        </div>)}
       </div>
-    </>
+      <dialog className="modal">
+        <button className='closeButton' onClick={() => dialog.close()}>close</button>
+        <div>{newsItem.feedlabel} — {convertDate(newsItem.date)}</div>
+        <hr />
+        <p><b>{newsItem.title}</b></p>
+        <p id='content'>{parseContent(newsItem.contents)}</p>
+      </dialog>
+    </div>
   )
 }
 
@@ -150,12 +212,13 @@ function App() {
   const [message, setMessage] = useState("")
   const [visibleTab, setVisibleTab] = useState('')
 
+
   const handleInputChange = (event) => {
     setSearchTerm(event.target.value)
   }
 
   // to-do: search beginning of title / middle of title
-  // to-do: add animated loading indicator
+  // to-do: add animated loading indicator (?)
   const search = async (event) => {
     event.preventDefault()
     setMessage("Searching...")
@@ -224,10 +287,10 @@ function App() {
   }
 
   const fetchNews = (appId) => {
-    axios.get(`/api/getnews/?appId=${appId}&count=5&maxlength=400`)
+    axios.get(`/api/getnews/?appId=${appId}&count=5`)
       .then(response => {
+        //console.log("fetchNews response.data", response.data)
         setGameNews(response.data)
-        //console.log("setGameNews(response.data)", response.data)
       })
       .catch(error => {
         console.log(error)
@@ -291,3 +354,4 @@ export default App
 
 // to-do: add testing
 // to-do: add ability to login and fetch user's Steam account information (?)
+// to-do: improve visuals with a library like React Bootstrap
