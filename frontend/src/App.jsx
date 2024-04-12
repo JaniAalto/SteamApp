@@ -1,7 +1,10 @@
 /* eslint-disable react/prop-types */                                                // to-do: fix prop types
 import axios from 'axios'
 import { useState } from 'react'
+import { Parser } from 'bulletin-board-code'
 import './App.css'
+
+const bbcParser = new Parser()
 
 
 const SearchForm = ({ search, searchTerm, handleInputChange, message }) => {
@@ -115,6 +118,7 @@ const Achievements = ({ gameName, gameInfoList, percList, showNews }) => {
 }
 
 // to-do: add a "load more news" button
+// to-do: move the modal close button floating outside the dialog box
 const News = ({ newsList, gameName, showAchievements }) => {
   //console.log("newsList", newsList)
   const [newsItem, setNewsItem] = useState("")
@@ -123,6 +127,7 @@ const News = ({ newsList, gameName, showAchievements }) => {
     return (<p className='resultMsg'><b>No news found</b></p>)
 
   let dialog = document.querySelector('dialog')  // needs to be done twice...
+
   const showNewsModal = (item) => {
     setNewsItem(item)
     //console.log("newsItem", item)
@@ -146,11 +151,16 @@ const News = ({ newsList, gameName, showAchievements }) => {
     return text
   }
 
-  // to-do: fix the formatting of articles that use BBCode tags
-  const parseContent = (text) => {
+  const parseContent = (text, feedtype) => {
     const newsContent = document.getElementById('content')
     if (newsContent) {
       newsContent.innerText = ""
+
+      if (feedtype === 1) {  // indicates a community announcement, which are formatted in BBCode
+        text = text.replaceAll("{STEAM_CLAN_IMAGE}", "https://clan.akamai.steamstatic.com/images//")
+        text = text.replaceAll("[code]", "").replaceAll("[/code]", "")
+        text = bbcParser.toHTML(text)
+      }
       newsContent.insertAdjacentHTML("beforeend", text)
 
       const images = newsContent.querySelectorAll('img')
@@ -188,7 +198,7 @@ const News = ({ newsList, gameName, showAchievements }) => {
         <div>{newsItem.feedlabel} — {convertDate(newsItem.date)}</div>
         <hr />
         <p><b>{newsItem.title}</b></p>
-        <p id='content'>{parseContent(newsItem.contents)}</p>
+        <p id='content'>{parseContent(newsItem.contents, newsItem.feed_type)}</p>
       </dialog>
     </div>
   )
