@@ -147,7 +147,6 @@ const News = ({ newsList, gameName, showAchievements }) => {
   }
 
   // to-do: fix the formatting of articles that use BBCode tags
-  // to-do: fix image resizing
   const parseContent = (text) => {
     const newsContent = document.getElementById('content')
     if (newsContent) {
@@ -158,22 +157,16 @@ const News = ({ newsList, gameName, showAchievements }) => {
       //console.log("images", images)
       if (images) {
         images.forEach((image) => {
-          //console.log("image size", image.naturalWidth, " ", image.naturalHeight)
-          if (image.naturalWidth > 700 || image.naturalHeight > 700) {
-            image.width = image.naturalWidth / 2
-            image.height = image.naturalHeight / 2
-            //console.log("resized")
-          }
-        }
-      )}
-      /*
-      const image = newsContent.querySelector('img')
-      if (image) {
-        if (image.width > 700 || image.height > 700) {
-          image.width = image.width / 2
-          image.height = image.height / 2
-        }
-      }*/
+          image.addEventListener("load", () => {
+            const aspectRatio = image.width / image.height
+            if (image.width > newsContent.clientWidth) {
+              image.width = newsContent.clientWidth
+              image.height = newsContent.clientWidth / aspectRatio
+              //console.log("resized to", image.width, "x", image.height)
+            }
+          })
+        })
+      }
     }
   }
 

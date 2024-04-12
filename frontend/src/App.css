@@ -93,7 +93,7 @@ table, th, td {
 dialog {
   margin: auto;
   width: 50%;
-  padding: 1em;
+  padding: 20px;
 }
 ::backdrop {
   background: rgb(0, 0, 0);
