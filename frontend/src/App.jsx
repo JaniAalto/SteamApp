@@ -1,10 +1,10 @@
-/* eslint-disable react/prop-types */                                                // to-do: fix prop types
+/* eslint-disable react/prop-types */
+// to-do: fix props validation 
+
 import axios from 'axios'
 import { useState } from 'react'
 import { Parser } from 'bulletin-board-code'
 import './App.css'
-
-const bbcParser = new Parser()
 
 
 const SearchForm = ({ search, searchTerm, handleInputChange, message }) => {
@@ -127,6 +127,8 @@ const News = ({ newsList, gameName, showAchievements, fetchMoreNews }) => {
   const [newsItem, setNewsItem] = useState("")
   const [newsCount, setNewsCount] = useState(5)
 
+  const bbcParser = new Parser()
+
   if (newsList.length === 0)
     return (
       <div className='newsView'>
@@ -151,24 +153,38 @@ const News = ({ newsList, gameName, showAchievements, fetchMoreNews }) => {
       return ""
   }
 
-  const shortenText = (text) => {
-    let shortenedText = ""
-    if (text.length > 400) {
-      shortenedText = text.substring(0, 400) + "..."
-      return shortenedText
+  const parsePreview = (text, feedType) => {
+    if (feedType === 1) {  // indicates a community announcement, which are formatted in BBCode
+      text = text.replaceAll("{STEAM_CLAN_IMAGE}", "https://clan.akamai.steamstatic.com/images//")
+      text = text.replaceAll("[code]", "").replaceAll("[/code]", "")
+      text = bbcParser.toHTML(text)
+      text = text.replaceAll("[previewyoutube]", "[").replaceAll("][/previewyoutube]", "]")
+      text = text.replace(/\[[^\]]*\]/g, "")
     }
+    // stripping HTML formatting and images to get plain text
+    const tempDivElement = document.createElement("div")
+    tempDivElement.innerHTML = text
+    text = tempDivElement.innerText
+
+    if (text.length > 400)
+      text = text.substring(0, 400) + "..."
+
     return text
   }
 
-  const parseContent = (text, feedtype) => {
+  const parseContent = (text, feedType) => {
     const newsContent = document.getElementById('content')
     if (newsContent) {
       newsContent.innerText = ""
 
-      if (feedtype === 1) {  // indicates a community announcement, which are formatted in BBCode
+      if (feedType === 1) {  // indicates a community announcement, which are formatted in BBCode
         text = text.replaceAll("{STEAM_CLAN_IMAGE}", "https://clan.akamai.steamstatic.com/images//")
         text = text.replaceAll("[code]", "").replaceAll("[/code]", "")
         text = bbcParser.toHTML(text)
+        // the following removes previewyoutube embeds since they don't work in HTML
+        // to-do: convert these into functional YouTube links
+        text = text.replaceAll("[previewyoutube]", "[").replaceAll("][/previewyoutube]", "]")
+        text = text.replace(/\[[^\]]*\]/g, "")
       }
       newsContent.insertAdjacentHTML("beforeend", text)
 
@@ -197,7 +213,7 @@ const News = ({ newsList, gameName, showAchievements, fetchMoreNews }) => {
   const loadButton = document.getElementById('loadMoreButton')
   if (loadButton && newsCount > newsList.length)  // briefly true on each render
     loadButton.disabled = true
-  if (loadButton && newsCount === newsList.length)  // so this re-enables the button until news actually run out
+  if (loadButton && newsCount === newsList.length)  // so this re-enables the button until news actually runs out
     loadButton.disabled = false
 
   return (
@@ -210,7 +226,7 @@ const News = ({ newsList, gameName, showAchievements, fetchMoreNews }) => {
           <div>{item.feedlabel} — {convertDate(item.date)}</div>
           <hr />
           <p><b>{item.title}</b></p>
-          <p>{shortenText(item.contents)}</p>
+          <p>{parsePreview(item.contents, item.feed_type)}</p>
         </div>)}
       </div>
       <button id='loadMoreButton' className='loadMoreButton' onClick={loadMoreNews}>load more</button>
@@ -243,7 +259,7 @@ function App() {
     setSearchTerm(event.target.value)
   }
 
-  // to-do: search beginning of title / middle of title
+  // to-do: search beginning of title or anywhere in the title
   // to-do: add animated loading indicator (?)
   const search = async (event) => {
     event.preventDefault()
@@ -293,9 +309,9 @@ function App() {
   const fetchAchievements = (appId, appName) => {
     axios.get(`/api/getachievs/?appId=${appId}`)
       .then(response => {
+        //console.log("setPercentages(response.data)", response.data)
         if (response.data && response.data.achievementpercentages && response.data.achievementpercentages.achievements)
           setPercentages(response.data.achievementpercentages.achievements)
-        //console.log("setPercentages(response.data)", response.data)
       })
       .catch(error => {
         console.log(error)
@@ -303,10 +319,10 @@ function App() {
       })
     axios.get(`/api/getgameinfo/?appId=${appId}`)
       .then(response => {
+        //console.log("setGameInfo(response.data)", response.data)
         if (response.data && response.data.game && response.data.game.availableGameStats &&
           response.data.game.availableGameStats.achievements)
           setGameInfo(response.data.game.availableGameStats.achievements)
-        //console.log("setGameInfo(response.data)", response.data)
       })
       .catch(error => {
         console.log(error)
