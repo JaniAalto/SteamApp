@@ -49,10 +49,16 @@ const Achievements = ({ gameName, gameInfoList, percList, showNews }) => {
   const [sortOrder, setSortOrder] = useState('default')
 
   if (gameInfoList.length === 0 || percList.length === 0) {
-    return (<p className='resultMsg'><b>No achievements found</b></p>)
+    return (
+      <div className='achievementView'>
+        <button className='tabButton' onClick={showNews}>NEWS</button>
+        <p className='resultMsg'><b>No achievements found</b></p>
+      </div>
+    )
   }
 
-  let renderedList = []  // combining information from the two sources
+  // combining information from the two sources
+  let renderedList = []
   gameInfoList.forEach(stat => {
     const result = percList.find(({ name }) => name === stat.name)
     if (result) {
@@ -93,38 +99,41 @@ const Achievements = ({ gameName, gameInfoList, percList, showNews }) => {
   }
 
   return (
-    <>
-      <div className='achievementView'>
-        <div>
-          <select className='sortSelect' value={sortOrder} onChange={e => setSortOrder(e.target.value)} >
-            <option value='default'>Sort by default order</option>
-            <option value='percentage'>Sort by percentage</option>
-            <option value='alphabetical'>Sort alphabetically</option>
-          </select>
-          <button className='tabButton' onClick={showNews}>NEWS</button>
-          <h1>{gameName}</h1>
-        </div>
-        <table><tbody>
-          {renderedList.map(stat => <tr key={stat.name}>
-            <td><img src={stat.icon} width="64" height="64" /></td>
-            <td className='nameColumn'><b>{stat.displayName}</b></td>
-            <td>{stat.description ? stat.description : "(No description available)"}</td>
-            <td className='percColumn'>{createBar(stat.percent)} — {stat.percent.toFixed(1)}%</td>
-          </tr>)}
-        </tbody></table>
+    <div className='achievementView'>
+      <div>
+        <select className='sortSelect' value={sortOrder} onChange={e => setSortOrder(e.target.value)} >
+          <option value='default'>Sort by default order</option>
+          <option value='percentage'>Sort by percentage</option>
+          <option value='alphabetical'>Sort alphabetically</option>
+        </select>
+        <button className='tabButton' onClick={showNews}>NEWS</button>
+        <h1>{gameName}</h1>
       </div>
-    </>
+      <table><tbody>
+        {renderedList.map(stat => <tr key={stat.name}>
+          <td><img src={stat.icon} width="64" height="64" /></td>
+          <td className='nameColumn'><b>{stat.displayName}</b></td>
+          <td>{stat.description ? stat.description : "(No description available)"}</td>
+          <td className='percColumn'>{createBar(stat.percent)} — {stat.percent.toFixed(1)}%</td>
+        </tr>)}
+      </tbody></table>
+    </div>
   )
 }
 
-// to-do: add a "load more news" button
-// to-do: move the modal close button floating outside the dialog box
-const News = ({ newsList, gameName, showAchievements }) => {
+// to-do: improve placement of the modal close button
+const News = ({ newsList, gameName, showAchievements, fetchMoreNews }) => {
   //console.log("newsList", newsList)
   const [newsItem, setNewsItem] = useState("")
+  const [newsCount, setNewsCount] = useState(5)
 
   if (newsList.length === 0)
-    return (<p className='resultMsg'><b>No news found</b></p>)
+    return (
+      <div className='newsView'>
+        <button className='tabButton' onClick={showAchievements}>ACHIEVEMENTS</button>
+        <p className='resultMsg'><b>No news found</b></p>
+      </div>
+    )
 
   let dialog = document.querySelector('dialog')  // needs to be done twice...
 
@@ -180,6 +189,17 @@ const News = ({ newsList, gameName, showAchievements }) => {
     }
   }
 
+  const loadMoreNews = () => {
+    fetchMoreNews(newsCount + 5)
+    setNewsCount(newsCount + 5)
+  }
+
+  const loadButton = document.getElementById('loadMoreButton')
+  if (loadButton && newsCount > newsList.length)  // briefly true on each render
+    loadButton.disabled = true
+  if (loadButton && newsCount === newsList.length)  // so this re-enables the button until news actually run out
+    loadButton.disabled = false
+
   return (
     <div className='newsView'>
       <button className='tabButton' onClick={showAchievements}>ACHIEVEMENTS</button>
@@ -193,6 +213,8 @@ const News = ({ newsList, gameName, showAchievements }) => {
           <p>{shortenText(item.contents)}</p>
         </div>)}
       </div>
+      <button id='loadMoreButton' className='loadMoreButton' onClick={loadMoreNews}>load more</button>
+
       <dialog className="modal">
         <button className='closeButton' onClick={() => dialog.close()}>close</button>
         <div>{newsItem.feedlabel} — {convertDate(newsItem.date)}</div>
@@ -208,12 +230,13 @@ const News = ({ newsList, gameName, showAchievements }) => {
 function App() {
   const [searchTerm, setSearchTerm] = useState("")
   const [searchResult, setSearchResult] = useState([])
-  const [percentages, setPercentages] = useState('')
-  const [gameInfo, setGameInfo] = useState('')
+  const [percentages, setPercentages] = useState([])
+  const [gameInfo, setGameInfo] = useState([])
   const [gameTitle, setGameTitle] = useState("")
-  const [gameNews, setGameNews] = useState('')
+  const [gameNews, setGameNews] = useState([])
   const [message, setMessage] = useState("")
   const [visibleTab, setVisibleTab] = useState('')
+  const [newsAppId, setNewsAppId] = useState("")
 
 
   const handleInputChange = (event) => {
@@ -264,24 +287,30 @@ function App() {
   const fetchInformation = (appId, appName) => {
     fetchAchievements(appId, appName)
     fetchNews(appId)
+    setNewsAppId(appId)  // used in fetchMoreNews
   }
 
   const fetchAchievements = (appId, appName) => {
     axios.get(`/api/getachievs/?appId=${appId}`)
       .then(response => {
-        setPercentages(response.data)
+        if (response.data && response.data.achievementpercentages && response.data.achievementpercentages.achievements)
+          setPercentages(response.data.achievementpercentages.achievements)
         //console.log("setPercentages(response.data)", response.data)
       })
       .catch(error => {
         console.log(error)
+        setPercentages([])
       })
     axios.get(`/api/getgameinfo/?appId=${appId}`)
       .then(response => {
-        setGameInfo(response.data)
+        if (response.data && response.data.game && response.data.game.availableGameStats &&
+          response.data.game.availableGameStats.achievements)
+          setGameInfo(response.data.game.availableGameStats.achievements)
         //console.log("setGameInfo(response.data)", response.data)
       })
       .catch(error => {
         console.log(error)
+        setGameInfo([])
       })
 
     setGameTitle(appName)
@@ -293,47 +322,45 @@ function App() {
     axios.get(`/api/getnews/?appId=${appId}&count=5`)
       .then(response => {
         //console.log("fetchNews response.data", response.data)
-        setGameNews(response.data)
+        if (response.data && response.data.appnews && response.data.appnews.newsitems)
+          setGameNews(response.data.appnews.newsitems)
+      })
+      .catch(error => {
+        console.log(error)
+        setGameNews([])
+      })
+  }
+
+  const fetchMoreNews = (count) => {
+    // there is no "last id" parameter for this endpoint that would allow searching in batches of equal size
+    axios.get(`/api/getnews/?appId=${newsAppId}&count=${count}`)
+      .then(response => {
+        //console.log("fetchMoreNews response.data", response.data)
+        if (response.data && response.data.appnews && response.data.appnews.newsitems) {
+          setGameNews(response.data.appnews.newsitems)
+        }
       })
       .catch(error => {
         console.log(error)
       })
   }
 
-  const showNews = async () => {
+  const showNews = () => {
     setVisibleTab('news')
   }
 
-  const showAchievements = async () => {
+  const showAchievements = () => {
     setVisibleTab('achievements')
-  }
-
-  let percList = []
-  if (typeof percentages === 'object') {
-    if (percentages.achievementpercentages && percentages.achievementpercentages.achievements) {
-      percList = percentages.achievementpercentages.achievements
-    }
-  }
-  let gameInfoList = []
-  if (typeof gameInfo === 'object') {
-    if (gameInfo.game && gameInfo.game.availableGameStats && gameInfo.game.availableGameStats.achievements) {
-      gameInfoList = gameInfo.game.availableGameStats.achievements
-    }
-  }
-  let newsList = []
-  if (typeof gameNews === 'object') {
-    if (gameNews.appnews && gameNews.appnews.newsitems) {
-      newsList = gameNews.appnews.newsitems
-    }
   }
 
   let tabToShow = (<></>)
   if (visibleTab === 'achievements') {
-    tabToShow = <Achievements gameName={gameTitle} gameInfoList={gameInfoList} percList={percList}
+    tabToShow = <Achievements gameName={gameTitle} gameInfoList={gameInfo} percList={percentages}
       showNews={showNews} />
   }
   if (visibleTab === 'news') {
-    tabToShow = <News newsList={newsList} gameName={gameTitle} showAchievements={showAchievements} />
+    tabToShow = <News newsList={gameNews} gameName={gameTitle} showAchievements={showAchievements}
+      fetchMoreNews={fetchMoreNews} />
   }
 
 
