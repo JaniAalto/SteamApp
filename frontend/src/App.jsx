@@ -41,6 +41,7 @@ const SearchResults = ({ searchResult, fetchInformation }) => {
   return (<></>)
 }
 
+// to-do: remove "hidden" column if there are no hidden achievements
 // to-do: make better percentage bar
 const Achievements = ({ gameName, gameInfoList, percList, showNews, showStats, playerCount }) => {
   //console.log("gameInfoList", gameInfoList)
@@ -284,7 +285,8 @@ const News = ({ newsList, gameName, showAchievements, fetchMoreNews }) => {
 }
 
 
-// to-do: move more of the networking logic to the backend
+// to-do: add a "show random game" button (?)
+// to-do: add a "loading" text for the different tabs
 // to-do: fix Stats re-rendering
 // to-do: move tab buttons, player count and game title to a header
 function App() {
@@ -298,7 +300,7 @@ function App() {
   const [message, setMessage] = useState("")
   const [visibleTab, setVisibleTab] = useState('')
   const [currentAppId, setCurrentAppId] = useState("")
-  const [playerCount, setPlayerCount] = useState(0)
+  const [playerCount, setPlayerCount] = useState("")
 
 
   const handleInputChange = (event) => {
@@ -352,20 +354,26 @@ function App() {
   }
 
   const fetchInformation = (appId, appName) => {
+    setAchievements([])
+    setPlayerCount("")
+    setGameStats([])
+
     fetchAchievements(appId, appName)
     fetchPlayerCount(appId)
+
     setCurrentAppId(appId)  // used when switching tabs and fetching their data
+    setGameTitle(appName)
 
     setVisibleTab('achievements')
     window.scrollTo({ top: 0, left: 0, behavior: "smooth" })
   }
 
-  const fetchAchievements = (appId, appName) => {
+  const fetchAchievements = (appId) => {
     axios.get(`/api/getachievs/?appid=${appId}`)
       .then(response => {
         //console.log("getachievs response.data", response.data)
-        if (response.data && response.data.achievementpercentages && response.data.achievementpercentages.achievements)
-          setPercentages(response.data.achievementpercentages.achievements)
+        if (response.data)
+          setPercentages(response.data)
       })
       .catch(error => {
         console.log(error)
@@ -374,15 +382,13 @@ function App() {
     axios.get(`/api/getgameinfo/?appid=${appId}`)
       .then(response => {
         //console.log("getgameinfo response.data", response.data)
-        if (response.data && response.data.game && response.data.game.availableGameStats &&
-          response.data.game.availableGameStats.achievements)
-          setAchievements(response.data.game.availableGameStats.achievements)
+        if (response.data && response.data.achievements)
+          setAchievements(response.data.achievements)
         else
-        setAchievements([])
+          setAchievements([])
 
-        if (response.data && response.data.game && response.data.game.availableGameStats &&
-          response.data.game.availableGameStats.stats)
-          setGameStats(response.data.game.availableGameStats.stats)
+        if (response.data && response.data.stats)
+          setGameStats(response.data.stats)
         else
           setGameStats([])
       })
@@ -391,16 +397,14 @@ function App() {
         setAchievements([])
         setGameStats([])
       })
-
-    setGameTitle(appName)
   }
 
   const fetchNews = () => {
     axios.get(`/api/getnews/?appid=${currentAppId}&count=5`)
       .then(response => {
         //console.log("fetchNews response.data", response.data)
-        if (response.data && response.data.appnews && response.data.appnews.newsitems)
-          setGameNews(response.data.appnews.newsitems)
+        if (response.data)
+          setGameNews(response.data)
       })
       .catch(error => {
         console.log(error)
@@ -413,8 +417,8 @@ function App() {
     axios.get(`/api/getnews/?appid=${currentAppId}&count=${count}`)
       .then(response => {
         //console.log("fetchMoreNews response.data", response.data)
-        if (response.data && response.data.appnews && response.data.appnews.newsitems) {
-          setGameNews(response.data.appnews.newsitems)
+        if (response.data) {
+          setGameNews(response.data)
         }
       })
       .catch(error => {
@@ -426,36 +430,32 @@ function App() {
     axios.get(`/api/getcurrplayers/?appid=${appId}`)
       .then(response => {
         //console.log("fetchPlayerCount response.data", response.data)
-        if (response.data && response.data.response && response.data.response.player_count)
-          setPlayerCount(response.data.response.player_count)
+        if (response.data && response.data.player_count || response.data.player_count === 0)
+          setPlayerCount(response.data.player_count)
         else
           setPlayerCount("N/A")
       })
       .catch(error => {
         console.log(error)
-        setPlayerCount("error")
+        setPlayerCount("N/A")
       })
   }
 
   // to-do: get all stats with one call
   const fetchAggregatedStats = () => {
-    //console.log("appId", currentAppId)
-    let newStats = gameStats
+    //console.log("currentAppId", appId)
+    let newStats = [...gameStats]
     gameStats.forEach(stat => {
       axios.get(`/api/getgamestats/?appid=${currentAppId}&count=1&name[0]=${stat.name}`)
         .then(response => {
-          //console.log("getDetails response.data.response", response.data.response)
-          if (response.data && response.data.response && response.data.response.globalstats
-            && Object.entries(response.data.response.globalstats)[0]
-            && Object.entries(response.data.response.globalstats)[0][1]
-            && Object.entries(response.data.response.globalstats)[0][1].total) {
-            //stat.total = Object.entries(response.data.response.globalstats)[0][1].total
-            const newStat = { ...stat, total: Object.entries(response.data.response.globalstats)[0][1].total }
+          //console.log("fetchAggregatedStats response.data", response.data)
+          if (response.data) {
+            const newStat = { ...stat, total: response.data }
             const index = newStats.findIndex((stat) => stat.name === newStat.name)
             newStats[index] = newStat
             console.log("newStat", newStat)
           }
-          setGameStats(newStats)  // doesn't update the DOM inside the Stats component for some reason
+          setGameStats(newStats)  // doesn't update the Stats view DOM for some reason
         })
         .catch(error => {
           console.log(error)
@@ -475,7 +475,6 @@ function App() {
   }
 
   const showAchievements = () => {
-    setAchievements([])
     setVisibleTab('achievements')
   }
 
@@ -486,8 +485,7 @@ function App() {
       showNews={showNews} showStats={showStats} playerCount={playerCount} />
   }
   if (visibleTab === 'stats') {
-    tabToShow = <Stats statsList={gameStats} fetchAggregatedStats={fetchAggregatedStats}
-      showAchievements={showAchievements} />
+    tabToShow = <Stats statsList={gameStats} showAchievements={showAchievements} />
   }
   if (visibleTab === 'news') {
     tabToShow = <News newsList={gameNews} gameName={gameTitle} showAchievements={showAchievements}
