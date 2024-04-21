@@ -134,5 +134,3 @@ const port = process.env.PORT || 3000
 app.listen(port, () => {
   console.log(`Server running on port ${port}`)
 })
-
-// the backend currently only routes API requests from the frontend but it has room for expansion

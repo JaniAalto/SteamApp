@@ -41,9 +41,32 @@ const SearchResults = ({ searchResult, fetchInformation }) => {
   return (<></>)
 }
 
+const Header = ({ gameName, playerCount, showNews, showStats, showAchievements }) => {
+  if (!gameName) {
+    // disable buttons?
+    return (
+      <div className='header'>
+        <button className='tabButton' onClick={showAchievements}>ACHIEVEMENTS</button>
+        <button className='tabButton' onClick={showStats}>STATISTICS</button>
+        <button className='tabButton' onClick={showNews}>NEWS</button>
+      </div>
+    )
+  }
+
+  return (
+    <div className='header'>
+      <button className='tabButton' onClick={showAchievements}>ACHIEVEMENTS</button>
+      <button className='tabButton' onClick={showStats}>STATISTICS</button>
+      <button className='tabButton' onClick={showNews}>NEWS</button>
+      <h1>{gameName}</h1>
+      <p>[Current number of players: {playerCount}]</p>
+    </div>
+  )
+}
+
 // to-do: remove "hidden" column if there are no hidden achievements
 // to-do: make better percentage bar
-const Achievements = ({ gameName, gameInfoList, percList, showNews, showStats, playerCount }) => {
+const Achievements = ({ gameInfoList, percList }) => {
   //console.log("gameInfoList", gameInfoList)
   //console.log("percList", percList)
   const [sortOrder, setSortOrder] = useState('default')
@@ -51,10 +74,6 @@ const Achievements = ({ gameName, gameInfoList, percList, showNews, showStats, p
   if (gameInfoList.length === 0 || percList.length === 0) {
     return (
       <div className='achievementView'>
-        <button className='tabButton' onClick={showNews}>NEWS</button>
-        <button className='tabButton' onClick={showStats}>STATS</button>
-        <h1>{gameName}</h1>
-        <p>[Current number of players: {playerCount}]</p>
         <p className='resultMsg'><b>No achievements found</b></p>
       </div>
     )
@@ -104,18 +123,13 @@ const Achievements = ({ gameName, gameInfoList, percList, showNews, showStats, p
 
   return (
     <div className='achievementView'>
-      <div>
-        <select className='sortSelect' value={sortOrder} onChange={e => setSortOrder(e.target.value)} >
-          <option value='default'>Sort by default order</option>
-          <option value='percentDesc'>Sort by percentage (desc)</option>
-          <option value='percentAsc'>Sort by percentage (asc)</option>
-          <option value='alphabetical'>Sort alphabetically</option>
-        </select>
-        <button className='tabButton' onClick={showNews}>NEWS</button>
-        <button className='tabButton' onClick={showStats}>STATS</button>
-        <h1>{gameName}</h1>
-        <p>[Current number of players: {playerCount}]</p>
-      </div>
+      <select className='sortSelect' value={sortOrder} onChange={e => setSortOrder(e.target.value)} >
+        <option value='default'>Sort by default order</option>
+        <option value='percentDesc'>Sort by percentage (desc)</option>
+        <option value='percentAsc'>Sort by percentage (asc)</option>
+        <option value='alphabetical'>Sort alphabetically</option>
+      </select>
+      <br />
       <table><tbody>
         {renderedList.map(stat =>
           <tr key={stat.name}>
@@ -130,13 +144,12 @@ const Achievements = ({ gameName, gameInfoList, percList, showNews, showStats, p
   )
 }
 
-const Stats = ({ statsList, showAchievements }) => {
+const Stats = ({ statsList }) => {
   //console.log("statsList", statsList)
 
   if (statsList.length === 0) {
     return (
-      <div>
-        <button className='tabButton' onClick={showAchievements}>ACHIEVEMENTS</button>
+      <div className='statsView'>
         <h2>Total aggregate stats by all players (WIP)</h2>
         <p className='resultMsg'><b>No stats found</b></p>
       </div>
@@ -144,8 +157,7 @@ const Stats = ({ statsList, showAchievements }) => {
   }
 
   return (
-    <div>
-      <button className='tabButton' onClick={showAchievements}>ACHIEVEMENTS</button>
+    <div className='statsView'>
       <h2>Total aggregate stats by all players (WIP)</h2>
       {statsList.map(stat => {
         if (stat.total)
@@ -166,7 +178,7 @@ const Stats = ({ statsList, showAchievements }) => {
 }
 
 // to-do: improve placement of the modal close button or allow closing another way
-const News = ({ newsList, gameName, showAchievements, fetchMoreNews }) => {
+const News = ({ newsList, fetchNews }) => {
   //console.log("newsList", newsList)
   const [newsItem, setNewsItem] = useState("")
   const [newsCount, setNewsCount] = useState(5)
@@ -176,7 +188,6 @@ const News = ({ newsList, gameName, showAchievements, fetchMoreNews }) => {
   if (newsList.length === 0)
     return (
       <div className='newsView'>
-        <button className='tabButton' onClick={showAchievements}>ACHIEVEMENTS</button>
         <p className='resultMsg'><b>No news found</b></p>
       </div>
     )
@@ -248,7 +259,7 @@ const News = ({ newsList, gameName, showAchievements, fetchMoreNews }) => {
   }
 
   const loadMoreNews = () => {
-    fetchMoreNews(newsCount + 5)
+    fetchNews(newsCount + 5)
     setNewsCount(newsCount + 5)
   }
 
@@ -260,8 +271,6 @@ const News = ({ newsList, gameName, showAchievements, fetchMoreNews }) => {
 
   return (
     <div className='newsView'>
-      <button className='tabButton' onClick={showAchievements}>ACHIEVEMENTS</button>
-      <h1>{gameName}</h1>
       <div>
         {newsList.map(item => <div key={item.gid} className='newsItem'
           onClick={() => showNewsModal(item)}>
@@ -288,7 +297,6 @@ const News = ({ newsList, gameName, showAchievements, fetchMoreNews }) => {
 // to-do: add a "show random game" button (?)
 // to-do: add a "loading" text for the different tabs
 // to-do: fix Stats re-rendering
-// to-do: move tab buttons, player count and game title to a header
 function App() {
   const [searchTerm, setSearchTerm] = useState("")
   const [searchResult, setSearchResult] = useState([])
@@ -399,8 +407,8 @@ function App() {
       })
   }
 
-  const fetchNews = () => {
-    axios.get(`/api/getnews/?appid=${currentAppId}&count=5`)
+  const fetchNews = (count) => {
+    axios.get(`/api/getnews/?appid=${currentAppId}&count=${count}`)
       .then(response => {
         //console.log("fetchNews response.data", response.data)
         if (response.data)
@@ -409,20 +417,6 @@ function App() {
       .catch(error => {
         console.log(error)
         setGameNews([])
-      })
-  }
-
-  const fetchMoreNews = (count) => {
-    // there is no "last id" parameter for this endpoint that would allow searching in batches of equal size
-    axios.get(`/api/getnews/?appid=${currentAppId}&count=${count}`)
-      .then(response => {
-        //console.log("fetchMoreNews response.data", response.data)
-        if (response.data) {
-          setGameNews(response.data)
-        }
-      })
-      .catch(error => {
-        console.log(error)
       })
   }
 
@@ -465,7 +459,7 @@ function App() {
 
   const showNews = () => {
     setGameNews([])
-    fetchNews()
+    fetchNews(5)
     setVisibleTab('news')
   }
 
@@ -478,33 +472,32 @@ function App() {
     setVisibleTab('achievements')
   }
 
-
   let tabToShow = (<></>)
   if (visibleTab === 'achievements') {
-    tabToShow = <Achievements gameName={gameTitle} gameInfoList={achievements} percList={percentages}
-      showNews={showNews} showStats={showStats} playerCount={playerCount} />
+    tabToShow = <Achievements gameInfoList={achievements} percList={percentages} />
   }
   if (visibleTab === 'stats') {
-    tabToShow = <Stats statsList={gameStats} showAchievements={showAchievements} />
+    tabToShow = <Stats statsList={gameStats} />
   }
   if (visibleTab === 'news') {
-    tabToShow = <News newsList={gameNews} gameName={gameTitle} showAchievements={showAchievements}
-      fetchMoreNews={fetchMoreNews} />
+    tabToShow = <News newsList={gameNews} fetchNews={fetchNews} />
   }
 
 
   return (
-    <>
-      <section>
-        <div className='searchView'>
-          <SearchForm search={search} searchTerm={searchTerm} handleInputChange={handleInputChange}
-            message={message} />
-          <SearchResults searchResult={searchResult} fetchInformation={fetchInformation} />
-        </div>
-        <hr />
+    <section>
+      <div className='searchView'>
+        <SearchForm search={search} searchTerm={searchTerm} handleInputChange={handleInputChange}
+          message={message} />
+        <SearchResults searchResult={searchResult} fetchInformation={fetchInformation} />
+      </div>
+      <hr />
+      <div className='contentView'>
+        <Header gameName={gameTitle} playerCount={playerCount} showNews={showNews} showStats={showStats}
+          showAchievements={showAchievements} />
         {tabToShow}
-      </section>
-    </>
+      </div>
+    </section>
   )
 }
 
