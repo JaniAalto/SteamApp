@@ -10,7 +10,6 @@ app.use(express.static('frontend/dist'))
 const apiKey = process.env.APIKEY
 const baseUrl = 'https://api.steampowered.com'
 
-
 const errorHandler = (error, req, res, next) => {
   if (error.response) {
     console.error(error.response.status + " " + error.response.statusText)
@@ -22,7 +21,7 @@ const errorHandler = (error, req, res, next) => {
   }
 }
 
-
+ 
 app.get('/api/getapplist', function (req, res, next) {
   const max_results = req.query.max_results
   const last_appid = req.query.last_appid
@@ -57,8 +56,9 @@ app.get('/api/getachievs', function (req, res, next) {
     })
     .catch(error => next(error))
 })
-
-// to-do: fix this call occasionally getting stuck and freezing the backend
+ 
+// calls for games that don't have achievements available return a 403 Forbidden
+// to-do: fix this call sometimes getting stuck and freezing the backend
 app.get('/api/getgameinfo', function (req, res, next) {
   const appId = req.query.appid
   const url = `${baseUrl}/ISteamUserStats/GetSchemaForGame/v0002/?key=${apiKey}&appid=${appId}`

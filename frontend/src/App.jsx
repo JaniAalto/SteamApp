@@ -7,7 +7,7 @@ import { Parser } from 'bulletin-board-code'
 import './App.css'
 
 
-const SearchForm = ({ search, searchTerm, handleInputChange, message }) => {
+const SearchForm = ({ search, searchTerm, handleInputChange, searchMessage }) => {
   return (
     <>
       <form className='searchForm' onSubmit={search}>
@@ -17,7 +17,7 @@ const SearchForm = ({ search, searchTerm, handleInputChange, message }) => {
         />
         <button id='searchButton' type='submit'>search</button>
       </form>
-      <p className='searchMsg'><b>{message}</b></p>
+      <p className='searchMsg'><b>{searchMessage}</b></p>
     </>
   )
 }
@@ -59,14 +59,13 @@ const Header = ({ gameName, playerCount, showNews, showStats, showAchievements }
       <button className='tabButton' onClick={showStats}>STATISTICS</button>
       <button className='tabButton' onClick={showNews}>NEWS</button>
       <h1>{gameName}</h1>
-      <p>[Current number of players: {playerCount}]</p>
+      <div>[Current number of players: {playerCount}]</div>
     </div>
   )
 }
 
-// to-do: remove "hidden" column if there are no hidden achievements
 // to-do: make better percentage bar
-const Achievements = ({ gameInfoList, percList }) => {
+const Achievements = ({ gameInfoList, percList, achievementsMessage }) => {
   //console.log("gameInfoList", gameInfoList)
   //console.log("percList", percList)
   const [sortOrder, setSortOrder] = useState('default')
@@ -74,7 +73,7 @@ const Achievements = ({ gameInfoList, percList }) => {
   if (gameInfoList.length === 0 || percList.length === 0) {
     return (
       <div className='achievementView'>
-        <p className='resultMsg'><b>No achievements found</b></p>
+        <p className='resultMsg'><b>{achievementsMessage}</b></p>
       </div>
     )
   }
@@ -121,6 +120,31 @@ const Achievements = ({ gameInfoList, percList }) => {
     return percentBar
   }
 
+  let achievementTable = (
+    <table><tbody>
+      {renderedList.map(stat =>
+        <tr key={stat.name}>
+          <td><img src={stat.icon} width="64" height="64" /></td>
+          <td className='nameColumn'><b>{stat.displayName}</b></td>
+          <td>{stat.description ? stat.description : "(No description available)"}</td>
+          <td>{stat.hidden ? "hidden" : ""}</td>
+          <td className='percColumn'>{createBar(stat.percent)} — {stat.percent.toFixed(1)}%</td>
+        </tr>)}
+    </tbody></table>
+  )
+  if (!renderedList.find((element) => element.hidden))
+    achievementTable = (
+      <table><tbody>
+        {renderedList.map(stat =>
+          <tr key={stat.name}>
+            <td><img src={stat.icon} width="64" height="64" /></td>
+            <td className='nameColumn'><b>{stat.displayName}</b></td>
+            <td>{stat.description ? stat.description : "(No description available)"}</td>
+            <td className='percColumn'>{createBar(stat.percent)} — {stat.percent.toFixed(1)}%</td>
+          </tr>)}
+      </tbody></table>
+    )
+
   return (
     <div className='achievementView'>
       <select className='sortSelect' value={sortOrder} onChange={e => setSortOrder(e.target.value)} >
@@ -130,28 +154,19 @@ const Achievements = ({ gameInfoList, percList }) => {
         <option value='alphabetical'>Sort alphabetically</option>
       </select>
       <br />
-      <table><tbody>
-        {renderedList.map(stat =>
-          <tr key={stat.name}>
-            <td><img src={stat.icon} width="64" height="64" /></td>
-            <td className='nameColumn'><b>{stat.displayName}</b></td>
-            <td>{stat.description ? stat.description : "(No description available)"}</td>
-            <td>{stat.hidden ? "hidden" : ""}</td>
-            <td className='percColumn'>{createBar(stat.percent)} — {stat.percent.toFixed(1)}%</td>
-          </tr>)}
-      </tbody></table>
+      {achievementTable}
     </div>
   )
 }
 
-const Stats = ({ statsList }) => {
+const Stats = ({ statsList, statsMessage }) => {
   //console.log("statsList", statsList)
 
   if (statsList.length === 0) {
     return (
       <div className='statsView'>
         <h2>Total aggregate stats by all players (WIP)</h2>
-        <p className='resultMsg'><b>No stats found</b></p>
+        <p className='resultMsg'><b>{statsMessage}</b></p>
       </div>
     )
   }
@@ -178,7 +193,7 @@ const Stats = ({ statsList }) => {
 }
 
 // to-do: improve placement of the modal close button or allow closing another way
-const News = ({ newsList, fetchNews }) => {
+const News = ({ newsList, fetchNews, newsMessage }) => {
   //console.log("newsList", newsList)
   const [newsItem, setNewsItem] = useState("")
   const [newsCount, setNewsCount] = useState(5)
@@ -188,7 +203,7 @@ const News = ({ newsList, fetchNews }) => {
   if (newsList.length === 0)
     return (
       <div className='newsView'>
-        <p className='resultMsg'><b>No news found</b></p>
+        <p className='resultMsg'><b>{newsMessage}</b></p>
       </div>
     )
 
@@ -295,7 +310,6 @@ const News = ({ newsList, fetchNews }) => {
 
 
 // to-do: add a "show random game" button (?)
-// to-do: add a "loading" text for the different tabs
 // to-do: fix Stats re-rendering
 function App() {
   const [searchTerm, setSearchTerm] = useState("")
@@ -305,7 +319,10 @@ function App() {
   const [gameStats, setGameStats] = useState([])
   const [gameTitle, setGameTitle] = useState("")
   const [gameNews, setGameNews] = useState([])
-  const [message, setMessage] = useState("")
+  const [searchMessage, setSearchMessage] = useState("")
+  const [achievementsMessage, setAchievementsMessage] = useState("")
+  const [statsMessage, setStatsMessage] = useState("")
+  const [newsMessage, setNewsMessage] = useState("")
   const [visibleTab, setVisibleTab] = useState('')
   const [currentAppId, setCurrentAppId] = useState("")
   const [playerCount, setPlayerCount] = useState("")
@@ -323,7 +340,7 @@ function App() {
     const searchButton = document.getElementById('searchButton')
     searchButton.disabled = true
 
-    setMessage("Searching...")
+    setSearchMessage("Searching...")
     const startTime = Date.now();
 
     let combinedResult = []
@@ -347,7 +364,7 @@ function App() {
         lastAppId = response.data[response.data.length - 1].appid
 
         combinedResult = combinedResult.concat(result)
-        setMessage(`Searching... found ${combinedResult.length} out of ${gamesTotal} games...`)
+        setSearchMessage(`Searching... found ${combinedResult.length} out of ${gamesTotal} games...`)
       }
       else {
         finished = true
@@ -357,7 +374,7 @@ function App() {
     while (!finished)
 
     setSearchResult(combinedResult)
-    setMessage(`Found ${combinedResult.length} games out of ${gamesTotal}`)
+    setSearchMessage(`Found ${combinedResult.length} games out of ${gamesTotal}`)
     searchButton.disabled = false
   }
 
@@ -367,6 +384,7 @@ function App() {
     setGameStats([])
 
     fetchAchievements(appId, appName)
+    fetchPercentages(appId)
     fetchPlayerCount(appId)
 
     setCurrentAppId(appId)  // used when switching tabs and fetching their data
@@ -376,48 +394,88 @@ function App() {
     window.scrollTo({ top: 0, left: 0, behavior: "smooth" })
   }
 
+  // also gets stats
+  // currently needs debugging
   const fetchAchievements = (appId) => {
+    setAchievementsMessage("Loading...")
+    //console.log("Fetching achievements")
+
+    axios.get(`/api/getgameinfo/?appid=${appId}`)
+      .then(response => {
+        if (!response.data) {
+          setAchievements([])
+          setAchievementsMessage("No achievements found")
+          setGameStats([])
+          setStatsMessage("No stats found")
+          console.log("No achievements or stats found")
+        }
+        //console.log("fetchAchievements response.data", response.data)
+
+        if (response.data.achievements) {
+          setAchievements(response.data.achievements)
+          setAchievementsMessage("")
+        }
+        else {
+          setAchievements([])
+          setAchievementsMessage("No achievements found")
+          //console.log("No achievements found")
+        }
+
+        //console.log("Fetching stats")
+        if (response.data.stats && response.data.stats.length > 0) {
+          setGameStats(response.data.stats)
+          setStatsMessage("")
+          //console.log("Stats: ", response.data.stats)
+        }
+        else {
+          setGameStats([])
+          setStatsMessage("No stats found")
+          //console.log("No stats found")
+        }
+      })
+      .catch(error => {  // never reaches here
+        console.log("ERROR No stats found")
+        console.log(error)
+        setAchievements([])
+        setGameStats([])
+        setAchievementsMessage("No achievements found")
+        setStatsMessage("No stats found")
+      })
+  }
+
+  const fetchPercentages = (appId) => {
     axios.get(`/api/getachievs/?appid=${appId}`)
       .then(response => {
         //console.log("getachievs response.data", response.data)
-        if (response.data)
+        if (response.data) {
           setPercentages(response.data)
+        }
       })
       .catch(error => {
         console.log(error)
         setPercentages([])
-      })
-    axios.get(`/api/getgameinfo/?appid=${appId}`)
-      .then(response => {
-        //console.log("getgameinfo response.data", response.data)
-        if (response.data && response.data.achievements)
-          setAchievements(response.data.achievements)
-        else
-          setAchievements([])
-
-        if (response.data && response.data.stats)
-          setGameStats(response.data.stats)
-        else
-          setGameStats([])
-      })
-      .catch(error => {
-        console.log(error)
-        setAchievements([])
-        setGameStats([])
+        setAchievementsMessage("No achievements found")
+        //console.log("No percentages found")
       })
   }
 
   const fetchNews = (count) => {
-    axios.get(`/api/getnews/?appid=${currentAppId}&count=${count}`)
-      .then(response => {
-        //console.log("fetchNews response.data", response.data)
-        if (response.data)
-          setGameNews(response.data)
-      })
-      .catch(error => {
-        console.log(error)
-        setGameNews([])
-      })
+    if (currentAppId) {
+      setNewsMessage("Loading...")
+      axios.get(`/api/getnews/?appid=${currentAppId}&count=${count}`)
+        .then(response => {
+          //console.log("fetchNews response.data", response.data)
+          if (response.data) {
+            setGameNews(response.data)
+            setNewsMessage("")
+          }
+        })
+        .catch(error => {
+          console.log(error)
+          setGameNews([])
+          setNewsMessage("No news found")
+        })
+    }
   }
 
   const fetchPlayerCount = (appId) => {
@@ -436,25 +494,27 @@ function App() {
   }
 
   // to-do: get all stats with one call
+  // eslint-disable-next-line no-unused-vars
   const fetchAggregatedStats = () => {
-    //console.log("currentAppId", appId)
-    let newStats = [...gameStats]
-    gameStats.forEach(stat => {
-      axios.get(`/api/getgamestats/?appid=${currentAppId}&count=1&name[0]=${stat.name}`)
-        .then(response => {
-          //console.log("fetchAggregatedStats response.data", response.data)
-          if (response.data) {
-            const newStat = { ...stat, total: response.data }
-            const index = newStats.findIndex((stat) => stat.name === newStat.name)
-            newStats[index] = newStat
-            console.log("newStat", newStat)
-          }
-          setGameStats(newStats)  // doesn't update the Stats view DOM for some reason
-        })
-        .catch(error => {
-          console.log(error)
-        })
-    })
+    if (currentAppId) {
+      let newStats = [...gameStats]
+      gameStats.forEach(stat => {
+        axios.get(`/api/getgamestats/?appid=${currentAppId}&count=1&name[0]=${stat.name}`)
+          .then(response => {
+            //console.log("fetchAggregatedStats response.data", response.data)
+            if (response.data) {
+              const newStat = { ...stat, total: response.data }
+              const index = newStats.findIndex((stat) => stat.name === newStat.name)
+              newStats[index] = newStat
+              console.log("newStat", newStat)
+            }
+            setGameStats(newStats)  // doesn't update the Stats element's DOM for some reason
+          })
+          .catch(error => {
+            console.log(error)
+          })
+      })
+    }
   }
 
   const showNews = () => {
@@ -464,7 +524,7 @@ function App() {
   }
 
   const showStats = () => {
-    fetchAggregatedStats()
+    //fetchAggregatedStats()
     setVisibleTab('stats')
   }
 
@@ -474,13 +534,14 @@ function App() {
 
   let tabToShow = (<></>)
   if (visibleTab === 'achievements') {
-    tabToShow = <Achievements gameInfoList={achievements} percList={percentages} />
+    tabToShow = <Achievements gameInfoList={achievements} percList={percentages}
+      achievementsMessage={achievementsMessage} />
   }
   if (visibleTab === 'stats') {
-    tabToShow = <Stats statsList={gameStats} />
+    tabToShow = <Stats statsList={gameStats} statsMessage={statsMessage} />
   }
   if (visibleTab === 'news') {
-    tabToShow = <News newsList={gameNews} fetchNews={fetchNews} />
+    tabToShow = <News newsList={gameNews} fetchNews={fetchNews} newsMessage={newsMessage} />
   }
 
 
@@ -488,7 +549,7 @@ function App() {
     <section>
       <div className='searchView'>
         <SearchForm search={search} searchTerm={searchTerm} handleInputChange={handleInputChange}
-          message={message} />
+          searchMessage={searchMessage} />
         <SearchResults searchResult={searchResult} fetchInformation={fetchInformation} />
       </div>
       <hr />
