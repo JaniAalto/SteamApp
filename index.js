@@ -7,21 +7,23 @@ const cors = require('cors')
 app.use(cors())
 app.use(express.static('frontend/dist'))
 
+axios.defaults.timeout = 5000
+
 const apiKey = process.env.APIKEY
 const baseUrl = 'https://api.steampowered.com'
 
 const errorHandler = (error, req, res, next) => {
   if (error.response) {
     console.error(error.response.status + " " + error.response.statusText)
-    return res.status(error.response.status).send({ error: error.response.statusText })
+    res.status(error.response.status).send({ error: error.response.statusText })
   }
   else {
     console.error(error)
-    return res.status(500).send("Unknown server error")
+    res.status(500).send("Unknown server error")
   }
 }
 
- 
+
 app.get('/api/getapplist', function (req, res, next) {
   const max_results = req.query.max_results
   const last_appid = req.query.last_appid
@@ -41,6 +43,7 @@ app.get('/api/getapplist', function (req, res, next) {
     .catch(error => next(error))
 })
 
+// calls for games that don't have achievements available return a 403 Forbidden
 app.get('/api/getachievs', function (req, res, next) {
   const appId = req.query.appid
   const url = `${baseUrl}/ISteamUserStats/GetGlobalAchievementPercentagesForApp/v0002/?key=${apiKey}&gameid=${appId}`
@@ -56,17 +59,27 @@ app.get('/api/getachievs', function (req, res, next) {
     })
     .catch(error => next(error))
 })
- 
-// calls for games that don't have achievements available return a 403 Forbidden
-// to-do: fix this call sometimes getting stuck and freezing the backend
+
+// returns either an object with game info or an empty object
+// sometimes the empty object is returned after a long delay
+// and multiple calls during that delay can cause the backend to freeze
+// setting a timeout or abort signal to the request doesn't work at all except in the frontend
 app.get('/api/getgameinfo', function (req, res, next) {
   const appId = req.query.appid
   const url = `${baseUrl}/ISteamUserStats/GetSchemaForGame/v0002/?key=${apiKey}&appid=${appId}`
 
-  axios.get(url)
+  function newAbortSignal(timeout) {
+    const abortController = new AbortController()
+    setTimeout(() => abortController.abort(), timeout)
+
+    return abortController.signal
+  }
+  let config = { timeout: 3000, signal: newAbortSignal(3000) }
+
+  axios.get(url, config)
     .then(response => {
       if (response.data) {
-        //console.log("getgameinfo", response.data)
+        console.log("getgameinfo", response.data)
         if (response.data.game && response.data.game.availableGameStats)
           res.json(response.data.game.availableGameStats)
       }

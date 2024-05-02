@@ -165,29 +165,37 @@ const Stats = ({ statsList, statsMessage }) => {
   if (statsList.length === 0) {
     return (
       <div className='statsView'>
-        <h2>Total aggregate stats by all players (WIP)</h2>
+        <h2>Total aggregate stats by all players</h2>
         <p className='resultMsg'><b>{statsMessage}</b></p>
       </div>
     )
   }
 
+  // most games don't track any global aggregate values for stats
+  const statsWithValues = statsList.map(stat => {
+    if (stat.total)
+      return (
+        <div key={stat.name}>
+          <p>{stat.displayName}: {stat.total.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</p>
+        </div>
+      )
+  })
+  const statsWithoutValues = statsList.map(stat => {
+    if (!stat.total)
+      return (
+        <div key={stat.name}>
+          <p>{stat.displayName}</p>
+        </div>
+      )
+  })
+
   return (
     <div className='statsView'>
-      <h2>Total aggregate stats by all players (WIP)</h2>
-      {statsList.map(stat => {
-        if (stat.total)
-          return (
-            <div key={stat.name}>
-              <p>{stat.displayName}: {stat.total}</p>
-            </div>
-          )
-        else
-          return (
-            <div key={stat.name}>
-              <p><s>{stat.displayName}</s></p>
-            </div>
-          )
-      })}
+      <h2>Total aggregate stats by all players:</h2>
+      {statsWithValues ? statsWithValues : "-"}
+      <br />
+      <h2>Stats without available aggregate values:</h2>
+      {statsWithoutValues ? statsWithoutValues : "-"}
     </div>
   )
 }
@@ -310,7 +318,6 @@ const News = ({ newsList, fetchNews, newsMessage }) => {
 
 
 // to-do: add a "show random game" button (?)
-// to-do: fix Stats re-rendering
 function App() {
   const [searchTerm, setSearchTerm] = useState("")
   const [searchResult, setSearchResult] = useState([])
@@ -332,7 +339,7 @@ function App() {
     setSearchTerm(event.target.value)
   }
 
-  // to-do: search beginning of title or anywhere in the title
+  // to-do: allow searching the beginning of the title or anywhere in the title
   // to-do: add animated loading indicator (?)
   const search = async (event) => {
     event.preventDefault()
@@ -382,12 +389,13 @@ function App() {
     setAchievements([])
     setPlayerCount("")
     setGameStats([])
+    setGameNews([])
 
-    fetchAchievements(appId, appName)
+    fetchAchievements(appId)
     fetchPercentages(appId)
     fetchPlayerCount(appId)
 
-    setCurrentAppId(appId)  // used when switching tabs and fetching their data
+    setCurrentAppId(appId)  // used in fetchNews
     setGameTitle(appName)
 
     setVisibleTab('achievements')
@@ -395,12 +403,20 @@ function App() {
   }
 
   // also gets stats
-  // currently needs debugging
   const fetchAchievements = (appId) => {
     setAchievementsMessage("Loading...")
+    setStatsMessage("Loading...")
     //console.log("Fetching achievements")
 
-    axios.get(`/api/getgameinfo/?appid=${appId}`)
+    function newAbortSignal(timeout) {
+      const abortController = new AbortController()
+      setTimeout(() => abortController.abort(), timeout)
+
+      return abortController.signal
+    }
+    let config = { timeout: 3000, signal: newAbortSignal(3000) }
+
+    axios.get(`/api/getgameinfo/?appid=${appId}`, config)
       .then(response => {
         if (!response.data) {
           setAchievements([])
@@ -418,7 +434,7 @@ function App() {
         else {
           setAchievements([])
           setAchievementsMessage("No achievements found")
-          //console.log("No achievements found")
+          console.log("No achievements found")
         }
 
         //console.log("Fetching stats")
@@ -426,15 +442,17 @@ function App() {
           setGameStats(response.data.stats)
           setStatsMessage("")
           //console.log("Stats: ", response.data.stats)
+
+          fetchAggregatedStats(appId, response.data.stats)
         }
         else {
           setGameStats([])
           setStatsMessage("No stats found")
-          //console.log("No stats found")
+          console.log("No stats found")
         }
       })
-      .catch(error => {  // never reaches here
-        console.log("ERROR No stats found")
+      .catch(error => {
+        console.log("Timed out")
         console.log(error)
         setAchievements([])
         setGameStats([])
@@ -455,7 +473,7 @@ function App() {
         console.log(error)
         setPercentages([])
         setAchievementsMessage("No achievements found")
-        //console.log("No percentages found")
+        console.log("No percentages found")
       })
   }
 
@@ -493,25 +511,27 @@ function App() {
       })
   }
 
+  // gets global numbers associated with the stats, if available
   // to-do: get all stats with one call
-  // eslint-disable-next-line no-unused-vars
-  const fetchAggregatedStats = () => {
-    if (currentAppId) {
-      let newStats = [...gameStats]
-      gameStats.forEach(stat => {
-        axios.get(`/api/getgamestats/?appid=${currentAppId}&count=1&name[0]=${stat.name}`)
+  const fetchAggregatedStats = (appId, stats) => {
+    //console.log("Fetching aggregated stats")
+    if (stats) {
+      //let newStats = [...gameStats]
+      stats.forEach(stat => {
+        axios.get(`/api/getgamestats/?appid=${appId}&count=1&name[0]=${stat.name}`)
           .then(response => {
             //console.log("fetchAggregatedStats response.data", response.data)
             if (response.data) {
               const newStat = { ...stat, total: response.data }
-              const index = newStats.findIndex((stat) => stat.name === newStat.name)
-              newStats[index] = newStat
-              console.log("newStat", newStat)
+              const index = stats.findIndex((stat) => stat.name === newStat.name)
+              stats[index] = newStat
+              //console.log("newStat", newStat)
             }
-            setGameStats(newStats)  // doesn't update the Stats element's DOM for some reason
+            setGameStats(stats)
           })
           .catch(error => {
             console.log(error)
+            setGameStats([])
           })
       })
     }
@@ -524,7 +544,6 @@ function App() {
   }
 
   const showStats = () => {
-    //fetchAggregatedStats()
     setVisibleTab('stats')
   }
 
