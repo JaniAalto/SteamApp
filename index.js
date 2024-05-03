@@ -7,8 +7,6 @@ const cors = require('cors')
 app.use(cors())
 app.use(express.static('frontend/dist'))
 
-axios.defaults.timeout = 5000
-
 const apiKey = process.env.APIKEY
 const baseUrl = 'https://api.steampowered.com'
 
@@ -79,7 +77,7 @@ app.get('/api/getgameinfo', function (req, res, next) {
   axios.get(url, config)
     .then(response => {
       if (response.data) {
-        console.log("getgameinfo", response.data)
+        //console.log("getgameinfo", response.data)
         if (response.data.game && response.data.game.availableGameStats)
           res.json(response.data.game.availableGameStats)
       }
@@ -107,6 +105,19 @@ app.get('/api/getgamestats', function (req, res, next) {
   const appId = req.query.appid
   const count = req.query.count
   const name = req.query.name[0]
+  /*
+  let names = req.query.name
+  let statString = ""
+  let count = 0
+  if (typeof names === 'object')
+    names = Object.values(names)
+  names.forEach(name => {
+    statString = statString.concat(`&name[${count}]=${name}`)
+    count++
+  })
+  const url = `${baseUrl}/ISteamUserStats/GetGlobalStatsForGame/v0001/?appid=${appId}&count=${count}${statString}`
+  */
+  
   const url = `${baseUrl}/ISteamUserStats/GetGlobalStatsForGame/v0001/?appid=${appId}&count=${count}&name[0]=${name}`
 
   axios.get(url)

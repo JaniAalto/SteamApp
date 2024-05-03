@@ -1,320 +1,12 @@
-/* eslint-disable react/prop-types */
-// to-do: fix props validation 
-
 import axios from 'axios'
 import { useState } from 'react'
-import { Parser } from 'bulletin-board-code'
 import './App.css'
-
-
-const SearchForm = ({ search, searchTerm, handleInputChange, searchMessage }) => {
-  return (
-    <>
-      <form className='searchForm' onSubmit={search}>
-        <input
-          value={searchTerm}
-          onChange={handleInputChange}
-        />
-        <button id='searchButton' type='submit'>search</button>
-      </form>
-      <p className='searchMsg'><b>{searchMessage}</b></p>
-    </>
-  )
-}
-
-const SearchResults = ({ searchResult, fetchInformation }) => {
-  let resultList = []
-
-  if (searchResult.length > 0) {
-    resultList = searchResult.map((app) => <p key={app.appid} className='searchResult'
-      onClick={() => fetchInformation(app.appid, app.name)}> {app.name}</p>)
-  }
-
-  if (resultList && resultList.length > 0) {
-    return (
-      <>
-        <h2>Search results:</h2>
-        {resultList}
-      </>
-    )
-  }
-  return (<></>)
-}
-
-const Header = ({ gameName, playerCount, showNews, showStats, showAchievements }) => {
-  if (!gameName) {
-    // disable buttons?
-    return (
-      <div className='header'>
-        <button className='tabButton' onClick={showAchievements}>ACHIEVEMENTS</button>
-        <button className='tabButton' onClick={showStats}>STATISTICS</button>
-        <button className='tabButton' onClick={showNews}>NEWS</button>
-      </div>
-    )
-  }
-
-  return (
-    <div className='header'>
-      <button className='tabButton' onClick={showAchievements}>ACHIEVEMENTS</button>
-      <button className='tabButton' onClick={showStats}>STATISTICS</button>
-      <button className='tabButton' onClick={showNews}>NEWS</button>
-      <h1>{gameName}</h1>
-      <div>[Current number of players: {playerCount}]</div>
-    </div>
-  )
-}
-
-// to-do: make better percentage bar
-const Achievements = ({ gameInfoList, percList, achievementsMessage }) => {
-  //console.log("gameInfoList", gameInfoList)
-  //console.log("percList", percList)
-  const [sortOrder, setSortOrder] = useState('default')
-
-  if (gameInfoList.length === 0 || percList.length === 0) {
-    return (
-      <div className='achievementView'>
-        <p className='resultMsg'><b>{achievementsMessage}</b></p>
-      </div>
-    )
-  }
-
-  // combining information from the two sources
-  let renderedList = []
-  gameInfoList.forEach(stat => {
-    const result = percList.find(({ name }) => name === stat.name)
-    if (result) {
-      renderedList = renderedList.concat({
-        name: stat.name, displayName: stat.displayName,
-        description: stat.description, percent: result.percent, icon: stat.icon, hidden: stat.hidden
-      })
-    }
-  })
-
-  if (sortOrder === 'percentDesc') {
-    renderedList.sort((a, b) => b.percent - a.percent)
-  }
-  if (sortOrder === 'percentAsc') {
-    renderedList.sort((a, b) => a.percent - b.percent)
-  }
-  if (sortOrder === 'alphabetical') {
-    renderedList.sort((a, b) => {
-      const nameA = a.displayName.toUpperCase()
-      const nameB = b.displayName.toUpperCase()
-      if (nameA < nameB) {
-        return -1;
-      }
-      if (nameA > nameB) {
-        return 1;
-      }
-      return 0;
-    })
-  }
-
-  const createBar = (percent) => {  // simple visualisation for the percentage
-    let percentBar = ""
-    const multiple = Math.round(percent / 10)
-    for (let i = 0; i < multiple; i++)
-      percentBar = percentBar.concat("|")
-    while (percentBar.length < 10)
-      percentBar = percentBar.concat("'")
-    return percentBar
-  }
-
-  let achievementTable = (
-    <table><tbody>
-      {renderedList.map(stat =>
-        <tr key={stat.name}>
-          <td><img src={stat.icon} width="64" height="64" /></td>
-          <td className='nameColumn'><b>{stat.displayName}</b></td>
-          <td>{stat.description ? stat.description : "(No description available)"}</td>
-          <td>{stat.hidden ? "hidden" : ""}</td>
-          <td className='percColumn'>{createBar(stat.percent)} — {stat.percent.toFixed(1)}%</td>
-        </tr>)}
-    </tbody></table>
-  )
-  if (!renderedList.find((element) => element.hidden))
-    achievementTable = (
-      <table><tbody>
-        {renderedList.map(stat =>
-          <tr key={stat.name}>
-            <td><img src={stat.icon} width="64" height="64" /></td>
-            <td className='nameColumn'><b>{stat.displayName}</b></td>
-            <td>{stat.description ? stat.description : "(No description available)"}</td>
-            <td className='percColumn'>{createBar(stat.percent)} — {stat.percent.toFixed(1)}%</td>
-          </tr>)}
-      </tbody></table>
-    )
-
-  return (
-    <div className='achievementView'>
-      <select className='sortSelect' value={sortOrder} onChange={e => setSortOrder(e.target.value)} >
-        <option value='default'>Sort by default order</option>
-        <option value='percentDesc'>Sort by percentage (desc)</option>
-        <option value='percentAsc'>Sort by percentage (asc)</option>
-        <option value='alphabetical'>Sort alphabetically</option>
-      </select>
-      <br />
-      {achievementTable}
-    </div>
-  )
-}
-
-const Stats = ({ statsList, statsMessage }) => {
-  //console.log("statsList", statsList)
-
-  if (statsList.length === 0) {
-    return (
-      <div className='statsView'>
-        <h2>Total aggregate stats by all players</h2>
-        <p className='resultMsg'><b>{statsMessage}</b></p>
-      </div>
-    )
-  }
-
-  // most games don't track any global aggregate values for stats
-  const statsWithValues = statsList.map(stat => {
-    if (stat.total)
-      return (
-        <div key={stat.name}>
-          <p>{stat.displayName}: {stat.total.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</p>
-        </div>
-      )
-  })
-  const statsWithoutValues = statsList.map(stat => {
-    if (!stat.total)
-      return (
-        <div key={stat.name}>
-          <p>{stat.displayName}</p>
-        </div>
-      )
-  })
-
-  return (
-    <div className='statsView'>
-      <h2>Total aggregate stats by all players:</h2>
-      {statsWithValues ? statsWithValues : "-"}
-      <br />
-      <h2>Stats without available aggregate values:</h2>
-      {statsWithoutValues ? statsWithoutValues : "-"}
-    </div>
-  )
-}
-
-// to-do: improve placement of the modal close button or allow closing another way
-const News = ({ newsList, fetchNews, newsMessage }) => {
-  //console.log("newsList", newsList)
-  const [newsItem, setNewsItem] = useState("")
-  const [newsCount, setNewsCount] = useState(5)
-
-  const bbcParser = new Parser()
-
-  if (newsList.length === 0)
-    return (
-      <div className='newsView'>
-        <p className='resultMsg'><b>{newsMessage}</b></p>
-      </div>
-    )
-
-  let dialog = document.querySelector('dialog')  // needs to be done twice...
-
-  const showNewsModal = (item) => {
-    setNewsItem(item)
-    dialog = document.querySelector('dialog')  // ...for correct functioning
-    dialog.showModal()
-  }
-
-  const convertDate = (date) => {
-    if (date)
-      return new Date(date * 1000).toJSON().substring(0, 10).replace("-", "/").replace("-", "/")
-    else
-      return ""
-  }
-
-  const parsePreview = (text, feedType) => {
-    if (feedType === 1) {  // indicates a community announcement, which are formatted in BBCode
-      text = text.replaceAll("{STEAM_CLAN_IMAGE}", "https://clan.akamai.steamstatic.com/images//")
-      text = text.replaceAll("[code]", "").replaceAll("[/code]", "")
-      text = bbcParser.toHTML(text)
-      text = text.replaceAll("[previewyoutube]", "[").replaceAll("][/previewyoutube]", "]")
-      text = text.replace(/\[[^\]]*\]/g, "")
-    }
-    // stripping HTML formatting and images to get plain text
-    const tempDivElement = document.createElement("div")
-    tempDivElement.innerHTML = text
-    text = tempDivElement.innerText
-
-    if (text.length > 400)
-      text = text.substring(0, 400) + "..."
-
-    return text
-  }
-
-  // to-do: convert previewyoutube embeds into functional YouTube links
-  const parseContent = (text, feedType) => {
-    const newsContent = document.getElementById('content')
-    if (newsContent) {
-      newsContent.innerText = ""
-
-      if (feedType === 1) {  // indicates a community announcement, which are formatted in BBCode
-        text = text.replaceAll("{STEAM_CLAN_IMAGE}", "https://clan.akamai.steamstatic.com/images//")
-        text = text.replaceAll("[code]", "").replaceAll("[/code]", "")
-        text = bbcParser.toHTML(text)
-        // the following removes previewyoutube embeds since they don't work in HTML
-        text = text.replaceAll("[previewyoutube]", "[").replaceAll("][/previewyoutube]", "]")
-        text = text.replace(/\[[^\]]*\]/g, "")
-      }
-      newsContent.insertAdjacentHTML("beforeend", text)
-
-      const images = newsContent.querySelectorAll('img')
-      if (images) {
-        images.forEach((image) => {
-          image.addEventListener("load", () => {
-            const aspectRatio = image.width / image.height
-            if (image.width > newsContent.clientWidth) {
-              image.width = newsContent.clientWidth
-              image.height = newsContent.clientWidth / aspectRatio
-              //console.log("resized to", image.width, "x", image.height)
-            }
-          })
-        })
-      }
-    }
-  }
-
-  const loadMoreNews = () => {
-    fetchNews(newsCount + 5)
-    setNewsCount(newsCount + 5)
-  }
-
-  const loadButton = document.getElementById('loadMoreButton')
-  if (loadButton && newsCount > newsList.length)  // briefly true on each render
-    loadButton.disabled = true
-  if (loadButton && newsCount === newsList.length)  // so this re-enables the button until news actually runs out
-    loadButton.disabled = false
-
-  return (
-    <div className='newsView'>
-      <div>
-        {newsList.map(item => <div key={item.gid} className='newsItem'
-          onClick={() => showNewsModal(item)}>
-          <div>{item.feedlabel} — {convertDate(item.date)}</div>
-          <hr />
-          <p><b>{item.title}</b></p>
-          <p>{parsePreview(item.contents, item.feed_type)}</p>
-        </div>)}
-      </div>
-      <button id='loadMoreButton' className='loadMoreButton' onClick={loadMoreNews}>load more</button>
-
-      <dialog className="modal">
-        <button className='closeButton' onClick={() => dialog.close()}>close</button>
-        <div>{newsItem.feedlabel} — {convertDate(newsItem.date)}</div>
-        <hr />
-        <p><b>{newsItem.title}</b></p>
-        <p id='content'>{parseContent(newsItem.contents, newsItem.feed_type)}</p>
-      </dialog>
-    </div>
-  )
-}
+import SearchForm from './components/SearchForm'
+import SearchResults from './components/SearchResults'
+import Header from './components/Header'
+import Achievements from './components/Achievements'
+import Stats from './components/Stats'
+import News from './components/News'
 
 
 // to-do: add a "show random game" button (?)
@@ -403,6 +95,7 @@ function App() {
   }
 
   // also gets stats
+  // to-do: fix abort signal clearing achievements after quickly switching to a different game
   const fetchAchievements = (appId) => {
     setAchievementsMessage("Loading...")
     setStatsMessage("Loading...")
@@ -486,6 +179,8 @@ function App() {
           if (response.data) {
             setGameNews(response.data)
             setNewsMessage("")
+            if (response.data.length === 0)
+              setNewsMessage("No news found")
           }
         })
         .catch(error => {
@@ -511,12 +206,10 @@ function App() {
       })
   }
 
-  // gets global numbers associated with the stats, if available
-  // to-do: get all stats with one call
+  // gets global aggregated numbers associated with the stats, if available
   const fetchAggregatedStats = (appId, stats) => {
     //console.log("Fetching aggregated stats")
     if (stats) {
-      //let newStats = [...gameStats]
       stats.forEach(stat => {
         axios.get(`/api/getgamestats/?appid=${appId}&count=1&name[0]=${stat.name}`)
           .then(response => {
@@ -525,15 +218,31 @@ function App() {
               const newStat = { ...stat, total: response.data }
               const index = stats.findIndex((stat) => stat.name === newStat.name)
               stats[index] = newStat
-              //console.log("newStat", newStat)
+              console.log("newStat", newStat)
             }
             setGameStats(stats)
           })
           .catch(error => {
             console.log(error)
-            setGameStats([])
           })
       })
+
+      // getting all stats with one call doesn't work since the API returns an error if any of them are not
+      // aggregated stats, and it's generally impossible to know beforehand which ones are
+      /*
+      let statString = ""
+      let count = 0
+      stats.forEach(stat => {
+        statString = statString.concat(`&name[${count}]=${stat.name}`)
+        count++
+      })
+      axios.get(`/api/getgamestats/?appid=${appId}&count=${count}${statString}`)
+        .then(response => {
+          if (response.data) {
+            ...
+          }
+          setGameStats(stats)
+        })*/
     }
   }
 
@@ -563,6 +272,7 @@ function App() {
     tabToShow = <News newsList={gameNews} fetchNews={fetchNews} newsMessage={newsMessage} />
   }
 
+  // to-do: improve placement of the News modal close button or allow closing another way
 
   return (
     <section>
@@ -588,3 +298,4 @@ export default App
 // to-do: add ability to login and fetch user's Steam account information (?)
 // to-do: improve visuals with a library like React Bootstrap
 // to-do: add a favourites list the user can save games into or a recent searches list
+// to-do: fix props validation in component files
