@@ -153,8 +153,8 @@ function App() {
       })
       .catch(error => {
         console.log(error)
-        console.log("loading", loading)
-        console.log("appId, loadingAppId", appId, ", ", loadingAppId)
+        //console.log("loading", loading)
+        //console.log("appId, loadingAppId", appId, ", ", loadingAppId)
         if (appId === loadingAppId && loading) {
           console.log("Timed out")
           setAchievements([])
