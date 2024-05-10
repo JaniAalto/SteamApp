@@ -1,4 +1,4 @@
-A practice app that uses the Steam Web API to fetch information about video games on the Steam digital storefront. Currently fetches information about game achievements and news related to the game. Work in progress.
+A practice app that uses the Steam Web API to fetch information about video games on the Steam digital storefront. Currently fetches information about game achievements, in-game statistics and news related to the game. Work in progress.
 
 Available hosted at https://steamapp.onrender.com/
 

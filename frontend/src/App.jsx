@@ -24,6 +24,7 @@ function App() {
   const [newsMessage, setNewsMessage] = useState("")
   const [visibleTab, setVisibleTab] = useState('')
   const [currentAppId, setCurrentAppId] = useState("")
+  const [loadingAppId, setLoadingAppId] = useState("")
   const [playerCount, setPlayerCount] = useState("")
 
 
@@ -95,11 +96,14 @@ function App() {
   }
 
   // also gets stats
-  // to-do: fix abort signal clearing achievements after quickly switching to a different game
   const fetchAchievements = (appId) => {
     setAchievementsMessage("Loading...")
     setStatsMessage("Loading...")
     //console.log("Fetching achievements")
+    
+    // used to prevent the timeout from clearing achievements if the user has switched to a different game already
+    let loading = true
+    setLoadingAppId(appId)
 
     function newAbortSignal(timeout) {
       const abortController = new AbortController()
@@ -111,6 +115,9 @@ function App() {
 
     axios.get(`/api/getgameinfo/?appid=${appId}`, config)
       .then(response => {
+        loading = false
+        setLoadingAppId(0)
+
         if (!response.data) {
           setAchievements([])
           setAchievementsMessage("No achievements found")
@@ -134,7 +141,7 @@ function App() {
         if (response.data.stats && response.data.stats.length > 0) {
           setGameStats(response.data.stats)
           setStatsMessage("")
-          //console.log("Stats: ", response.data.stats)
+          console.log("Stats: ", response.data.stats)
 
           fetchAggregatedStats(appId, response.data.stats)
         }
@@ -145,11 +152,15 @@ function App() {
         }
       })
       .catch(error => {
-        console.log("Timed out")
         console.log(error)
-        setAchievements([])
+        console.log("loading", loading)
+        console.log("appId, loadingAppId", appId, ", ", loadingAppId)
+        if (appId === loadingAppId && loading) {
+          console.log("Timed out")
+          setAchievements([])
+          setAchievementsMessage("No achievements found")
+        }
         setGameStats([])
-        setAchievementsMessage("No achievements found")
         setStatsMessage("No stats found")
       })
   }

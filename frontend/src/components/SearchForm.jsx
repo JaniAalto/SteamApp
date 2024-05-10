@@ -5,8 +5,11 @@ const SearchForm = ({ search, searchTerm, handleInputChange, searchMessage }) =>
     <>
       <form className='searchForm' onSubmit={search}>
         <input
+          id="searchInput"
+          name="searchInput"
           value={searchTerm}
           onChange={handleInputChange}
+          autoComplete="on"
         />
         <button id='searchButton' type='submit'>search</button>
       </form>
