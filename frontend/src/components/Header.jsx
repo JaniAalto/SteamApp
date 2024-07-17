@@ -1,10 +1,11 @@
 /* eslint-disable react/prop-types */
 
-const Header = ({ gameName, playerCount, showNews, showStats, showAchievements }) => {
+const Header = ({ gameName, appId, showMain, showNews, showStats, showAchievements }) => {
   if (!gameName) {
     // disable buttons?
     return (
       <div className='header'>
+        <button className='tabButton' onClick={showMain}>MAIN</button>
         <button className='tabButton' onClick={showAchievements}>ACHIEVEMENTS</button>
         <button className='tabButton' onClick={showStats}>STATISTICS</button>
         <button className='tabButton' onClick={showNews}>NEWS</button>
@@ -12,13 +13,15 @@ const Header = ({ gameName, playerCount, showNews, showStats, showAchievements }
     )
   }
 
+  const url = `https://store.steampowered.com/app/${appId}`
+
   return (
     <div className='header'>
+      <button className='tabButton' onClick={showMain}>MAIN</button>
       <button className='tabButton' onClick={showAchievements}>ACHIEVEMENTS</button>
       <button className='tabButton' onClick={showStats}>STATISTICS</button>
       <button className='tabButton' onClick={showNews}>NEWS</button>
-      <h1>{gameName}</h1>
-      <div>[Current number of players: {playerCount}]</div>
+      <h1><a href={url}>{gameName}</a></h1>
     </div>
   )
 }

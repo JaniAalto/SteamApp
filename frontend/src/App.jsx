@@ -7,9 +7,9 @@ import Header from './components/Header'
 import Achievements from './components/Achievements'
 import Stats from './components/Stats'
 import News from './components/News'
+import Main from './components/MainTab'
 
 
-// to-do: add a "show random game" button (?)
 function App() {
   const [searchTerm, setSearchTerm] = useState("")
   const [searchResult, setSearchResult] = useState([])
@@ -18,10 +18,14 @@ function App() {
   const [gameStats, setGameStats] = useState([])
   const [gameTitle, setGameTitle] = useState("")
   const [gameNews, setGameNews] = useState([])
+  const [sharkInfo, setSharkInfo] = useState([])
+
   const [searchMessage, setSearchMessage] = useState("")
+  const [mainMessage, setMainMessage] = useState("")
   const [achievementsMessage, setAchievementsMessage] = useState("")
   const [statsMessage, setStatsMessage] = useState("")
   const [newsMessage, setNewsMessage] = useState("")
+
   const [visibleTab, setVisibleTab] = useState('')
   const [currentAppId, setCurrentAppId] = useState("")
   const [loadingAppId, setLoadingAppId] = useState("")
@@ -79,11 +83,13 @@ function App() {
   }
 
   const fetchInformation = (appId, appName) => {
+    setSharkInfo([])
     setAchievements([])
     setPlayerCount("")
     setGameStats([])
     setGameNews([])
 
+    fetchSharkInfo(appId)
     fetchAchievements(appId)
     fetchPercentages(appId)
     fetchPlayerCount(appId)
@@ -91,8 +97,30 @@ function App() {
     setCurrentAppId(appId)  // used in fetchNews
     setGameTitle(appName)
 
-    setVisibleTab('achievements')
+    setVisibleTab('main')
     window.scrollTo({ top: 0, left: 0, behavior: "smooth" })
+  }
+
+  const fetchSharkInfo = (appId) => {
+    setMainMessage("Loading...")
+
+    axios.get(`/api/getsharkinfo/?appid=${appId}`)
+      .then(response => {
+        console.log("getsharkinfo response.data", response.data)
+        if (response.data) {
+          //setMainMessage("")
+          setSharkInfo(response.data)
+        }
+        if (response.data.length === 0) {
+          setMainMessage("No info found")
+          console.log("No sharkinfo found")
+        }
+      })
+      .catch(error => {
+        console.log(error)
+        setSharkInfo([])
+        setMainMessage("No info found")
+      })
   }
 
   // also gets stats
@@ -257,21 +285,31 @@ function App() {
     }
   }
 
-  const showNews = () => {
-    setGameNews([])
-    fetchNews(5)
-    setVisibleTab('news')
-  }
-
-  const showStats = () => {
-    setVisibleTab('stats')
+  const showMain = () => {
+    setVisibleTab('main')
   }
 
   const showAchievements = () => {
     setVisibleTab('achievements')
   }
 
+  const showStats = () => {
+    setVisibleTab('stats')
+  }
+
+  const showNews = () => {
+    setGameNews([])
+    fetchNews(5)
+    setVisibleTab('news')
+  }
+
   let tabToShow = (<></>)
+  if (visibleTab === 'main') {
+    if (sharkInfo.length > 0)
+      tabToShow = <Main sharkInfo={sharkInfo[0]} playerCount={playerCount} mainMessage={mainMessage}  />
+    else
+      tabToShow = <Main sharkInfo={undefined} playerCount={playerCount} mainMessage={mainMessage}  />
+  }
   if (visibleTab === 'achievements') {
     tabToShow = <Achievements gameInfoList={achievements} percList={percentages}
       achievementsMessage={achievementsMessage} />
@@ -283,7 +321,6 @@ function App() {
     tabToShow = <News newsList={gameNews} fetchNews={fetchNews} newsMessage={newsMessage} />
   }
 
-  // to-do: improve placement of the News modal close button or allow closing another way
 
   return (
     <section>
@@ -294,8 +331,8 @@ function App() {
       </div>
       <hr />
       <div className='contentView'>
-        <Header gameName={gameTitle} playerCount={playerCount} showNews={showNews} showStats={showStats}
-          showAchievements={showAchievements} />
+        <Header gameName={gameTitle} appId={currentAppId} showMain={showMain} showNews={showNews} 
+        showStats={showStats} showAchievements={showAchievements} />
         {tabToShow}
       </div>
     </section>
@@ -305,8 +342,12 @@ function App() {
 
 export default App
 
-// to-do: add testing
+// to-do: add testing (?)
 // to-do: add ability to login and fetch user's Steam account information (?)
 // to-do: improve visuals with a library like React Bootstrap
 // to-do: add a favourites list the user can save games into or a recent searches list
 // to-do: fix props validation in component files
+// to-do: allow closing News modal by clicking outside it
+// to-do: add a "show random game" button (?)
+// to-do: have active tab button change colour
+// to-do: give left and right side of UI different bg colours

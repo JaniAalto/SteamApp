@@ -4,6 +4,9 @@
   padding: 2em;
   font-family: Arial, sans-serif;
 }
+body {
+  background: white;
+}
 
 h1 {
   font-family: 'Cambria', 'Times New Roman', Times, serif;
@@ -80,6 +83,10 @@ hr {
 .contentView {
   flex: 2;
   max-width: 1000px;
+}
+
+.mainView {
+  margin: 1em;
 }
 
 .achievementView {

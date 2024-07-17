@@ -151,6 +151,20 @@ app.get('/api/getcurrplayers', function (req, res, next) {
     .catch(error => next(error))
 })
 
+app.get('/api/getsharkinfo', function (req, res, next) {
+  const appId = req.query.appid
+  const url = `https://www.cheapshark.com/api/1.0/deals?steamAppID=${appId}&storeID=1`
+
+  axios.get(url)
+    .then(response => {
+      if (response.data) {
+        //console.log(response.data)
+        res.json(response.data)
+      }
+    })
+    .catch(error => next(error))
+})
+
 
 app.use(errorHandler)
 

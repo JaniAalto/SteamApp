@@ -1,6 +1,6 @@
-A practice app that uses the Steam Web API to fetch information about video games on the Steam digital storefront. Currently fetches information about game achievements, in-game statistics and news related to the game. Work in progress.
+A practice app that uses the Steam Web API (https://steamcommunity.com/dev) and the CheapShark API (https://apidocs.cheapshark.com/) to fetch information about video games on the Steam digital storefront. Currently fetches information such as review scores, price on Steam, achievements and news related to the game.
 
-Available hosted at https://steamapp.onrender.com/
+Available hosted at https://steamapp.onrender.com/. The page may take roughly a minute to load.
 
 Search by entering the beginning of a game title (e.g. "tales" or "total").
 
