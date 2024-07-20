@@ -106,7 +106,7 @@ function App() {
 
     axios.get(`/api/getsharkinfo/?appid=${appId}`)
       .then(response => {
-        console.log("getsharkinfo response.data", response.data)
+        //console.log("getsharkinfo response.data", response.data)
         if (response.data) {
           //setMainMessage("")
           setSharkInfo(response.data)
@@ -128,7 +128,7 @@ function App() {
     setAchievementsMessage("Loading...")
     setStatsMessage("Loading...")
     //console.log("Fetching achievements")
-    
+
     // used to prevent the timeout from clearing achievements if the user has switched to a different game already
     let loading = true
     setLoadingAppId(appId)
@@ -169,7 +169,7 @@ function App() {
         if (response.data.stats && response.data.stats.length > 0) {
           setGameStats(response.data.stats)
           setStatsMessage("")
-          console.log("Stats: ", response.data.stats)
+          //console.log("Stats: ", response.data.stats)
 
           fetchAggregatedStats(appId, response.data.stats)
         }
@@ -304,22 +304,56 @@ function App() {
   }
 
   let tabToShow = (<></>)
+  // resetting tab button colours
+  if (document.getElementById('mainTab'))
+    document.getElementById('mainTab').className = "tabButton"
+  if (document.getElementById('achievTab'))
+    document.getElementById('achievTab').className = "tabButton"
+  if (document.getElementById('statsTab'))
+    document.getElementById('statsTab').className = "tabButton"
+  if (document.getElementById('newsTab'))
+    document.getElementById('newsTab').className = "tabButton"
+
   if (visibleTab === 'main') {
-    if (sharkInfo.length > 0)
-      tabToShow = <Main sharkInfo={sharkInfo[0]} playerCount={playerCount} mainMessage={mainMessage}  />
-    else
-      tabToShow = <Main sharkInfo={undefined} playerCount={playerCount} mainMessage={mainMessage}  />
+    document.getElementById('mainTab').className = "tabButtonActive"
+    if (sharkInfo.length === 0)
+      sharkInfo[0] = ""
+    tabToShow = <Main sharkInfo={sharkInfo[0]} playerCount={playerCount} mainMessage={mainMessage} />
   }
   if (visibleTab === 'achievements') {
+    document.getElementById('achievTab').className = "tabButtonActive"
     tabToShow = <Achievements gameInfoList={achievements} percList={percentages}
       achievementsMessage={achievementsMessage} />
   }
   if (visibleTab === 'stats') {
+    document.getElementById('statsTab').className = "tabButtonActive"
     tabToShow = <Stats statsList={gameStats} statsMessage={statsMessage} />
   }
   if (visibleTab === 'news') {
+    document.getElementById('newsTab').className = "tabButtonActive"
+    //document.getElementById('newsTab').style.background = 'rgb(155, 165, 207)'
     tabToShow = <News newsList={gameNews} fetchNews={fetchNews} newsMessage={newsMessage} />
   }
+  /*
+    switch (visibleTab) {
+      case 'main':
+        if (sharkInfo.length === 0)
+          sharkInfo[0] = ""
+        tabToShow = <Main sharkInfo={sharkInfo[0]} playerCount={playerCount} mainMessage={mainMessage} />
+        break;
+      case 'achievements':
+        tabToShow = <Achievements gameInfoList={achievements} percList={percentages}
+          achievementsMessage={achievementsMessage} />
+        break;
+      case 'stats':
+        tabToShow = <Stats statsList={gameStats} statsMessage={statsMessage} />
+        break;
+      case 'news':
+        tabToShow = <News newsList={gameNews} fetchNews={fetchNews} newsMessage={newsMessage} />
+        break;
+      default:
+        break;
+    }*/
 
 
   return (
@@ -331,8 +365,8 @@ function App() {
       </div>
       <hr />
       <div className='contentView'>
-        <Header gameName={gameTitle} appId={currentAppId} showMain={showMain} showNews={showNews} 
-        showStats={showStats} showAchievements={showAchievements} />
+        <Header gameName={gameTitle} appId={currentAppId} showMain={showMain} showNews={showNews}
+          showStats={showStats} showAchievements={showAchievements} />
         {tabToShow}
       </div>
     </section>
@@ -347,7 +381,5 @@ export default App
 // to-do: improve visuals with a library like React Bootstrap
 // to-do: add a favourites list the user can save games into or a recent searches list
 // to-do: fix props validation in component files
-// to-do: allow closing News modal by clicking outside it
 // to-do: add a "show random game" button (?)
-// to-do: have active tab button change colour
 // to-do: give left and right side of UI different bg colours

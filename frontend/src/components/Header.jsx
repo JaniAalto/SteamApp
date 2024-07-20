@@ -5,10 +5,10 @@ const Header = ({ gameName, appId, showMain, showNews, showStats, showAchievemen
     // disable buttons?
     return (
       <div className='header'>
-        <button className='tabButton' onClick={showMain}>MAIN</button>
-        <button className='tabButton' onClick={showAchievements}>ACHIEVEMENTS</button>
-        <button className='tabButton' onClick={showStats}>STATISTICS</button>
-        <button className='tabButton' onClick={showNews}>NEWS</button>
+        <button className='tabButton' id="mainTab" onClick={showMain}>MAIN</button>
+        <button className='tabButton' id="achievTab" onClick={showAchievements}>ACHIEVEMENTS</button>
+        <button className='tabButton' id="statsTab" onClick={showStats}>STATISTICS</button>
+        <button className='tabButton' id="newsTab" onClick={showNews}>NEWS</button>
       </div>
     )
   }
@@ -17,10 +17,10 @@ const Header = ({ gameName, appId, showMain, showNews, showStats, showAchievemen
 
   return (
     <div className='header'>
-      <button className='tabButton' onClick={showMain}>MAIN</button>
-      <button className='tabButton' onClick={showAchievements}>ACHIEVEMENTS</button>
-      <button className='tabButton' onClick={showStats}>STATISTICS</button>
-      <button className='tabButton' onClick={showNews}>NEWS</button>
+    <button className='tabButton' id="mainTab" onClick={showMain}>MAIN</button>
+    <button className='tabButton' id="achievTab" onClick={showAchievements}>ACHIEVEMENTS</button>
+    <button className='tabButton' id="statsTab" onClick={showStats}>STATISTICS</button>
+    <button className='tabButton' id="newsTab" onClick={showNews}>NEWS</button>
       <h1><a href={url}>{gameName}</a></h1>
     </div>
   )

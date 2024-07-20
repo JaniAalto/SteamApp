@@ -16,11 +16,11 @@ const News = ({ newsList, fetchNews, newsMessage }) => {
       </div>
     )
 
-  let dialog = document.querySelector('dialog')  // needs to be done twice...
+  let dialog = document.querySelector('dialog')
 
   const showNewsModal = (item) => {
     setNewsItem(item)
-    dialog = document.querySelector('dialog')  // ...for correct functioning
+    dialog = document.querySelector('dialog')  // needs to be re-assigned for correct functioning
     dialog.showModal()
   }
 
@@ -87,11 +87,24 @@ const News = ({ newsList, fetchNews, newsMessage }) => {
     setNewsCount(newsCount + 5)
   }
 
-  const loadButton = document.getElementById('loadMoreButton')
-  if (loadButton && newsCount > newsList.length)  // briefly true on each render
-    loadButton.disabled = true
-  if (loadButton && newsCount === newsList.length)  // so this re-enables the button until news actually runs out
-    loadButton.disabled = false
+  const loadMoreButton = document.getElementById('loadMoreButton')
+  if (loadMoreButton && newsCount > newsList.length)  // briefly true on each render
+    loadMoreButton.disabled = true
+  if (loadMoreButton && newsCount === newsList.length)  // so this re-enables the button until news actually runs out
+    loadMoreButton.disabled = false
+
+  // the following lets the user close the news dialog by clicking outside it
+  if (dialog) {
+    dialog.addEventListener("click", () => {
+      dialog.close()
+    })
+  }
+  const article = document.getElementById('article')
+  if (article) {
+    article.addEventListener('click', (event) => {  // prevents dialog from closing if user clicks inside it
+      event.stopPropagation()
+    })
+  }
 
   return (
     <div className='newsView'>
@@ -106,12 +119,14 @@ const News = ({ newsList, fetchNews, newsMessage }) => {
       </div>
       <button id='loadMoreButton' className='loadMoreButton' onClick={loadMoreNews}>load more</button>
 
-      <dialog className="modal">
+      <dialog className='modal'>
         <button className='closeButton' onClick={() => dialog.close()}>close</button>
-        <div>{newsItem.feedlabel} — {convertDate(newsItem.date)}</div>
-        <hr />
-        <p><b>{newsItem.title}</b></p>
-        <p id='content'>{parseContent(newsItem.contents, newsItem.feed_type)}</p>
+        <div id='article'>
+          <div>{newsItem.feedlabel} — {convertDate(newsItem.date)}</div>
+          <hr />
+          <p><b>{newsItem.title}</b></p>
+          <p id='content'>{parseContent(newsItem.contents, newsItem.feed_type)}</p>
+        </div>
       </dialog>
     </div>
   )

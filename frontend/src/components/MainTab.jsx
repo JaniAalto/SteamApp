@@ -26,7 +26,7 @@ const Main = ({ sharkInfo, playerCount, mainMessage }) => {
     return (
       <div className='mainView'>
         <img src={headerImg} />
-        <p><b>Release date: {convertDate(sharkInfo.releaseDate)}</b></p>
+        <p><b>Release date:</b> {convertDate(sharkInfo.releaseDate)}</p>
         <p><b>Steam rating:</b> {sharkInfo.steamRatingPercent}% (from {sharkInfo.steamRatingCount} reviews)</p>
         <p><b>MetaCritic score:</b> {metaCritic}</p>
         <p><b>Current players:</b> {playerCount}</p>

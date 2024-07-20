@@ -10,6 +10,7 @@ const SearchForm = ({ search, searchTerm, handleInputChange, searchMessage }) =>
           value={searchTerm}
           onChange={handleInputChange}
           autoComplete="on"
+          type="text"
         />
         <button id='searchButton' type='submit'>search</button>
       </form>
