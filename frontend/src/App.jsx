@@ -331,45 +331,23 @@ function App() {
   }
   if (visibleTab === 'news') {
     document.getElementById('newsTab').className = "tabButtonActive"
-    //document.getElementById('newsTab').style.background = 'rgb(155, 165, 207)'
     tabToShow = <News newsList={gameNews} fetchNews={fetchNews} newsMessage={newsMessage} />
   }
-  /*
-    switch (visibleTab) {
-      case 'main':
-        if (sharkInfo.length === 0)
-          sharkInfo[0] = ""
-        tabToShow = <Main sharkInfo={sharkInfo[0]} playerCount={playerCount} mainMessage={mainMessage} />
-        break;
-      case 'achievements':
-        tabToShow = <Achievements gameInfoList={achievements} percList={percentages}
-          achievementsMessage={achievementsMessage} />
-        break;
-      case 'stats':
-        tabToShow = <Stats statsList={gameStats} statsMessage={statsMessage} />
-        break;
-      case 'news':
-        tabToShow = <News newsList={gameNews} fetchNews={fetchNews} newsMessage={newsMessage} />
-        break;
-      default:
-        break;
-    }*/
 
 
   return (
-    <section>
-      <div className='searchView'>
+    <main>
+      <div className='searchView' id='searchView'>
         <SearchForm search={search} searchTerm={searchTerm} handleInputChange={handleInputChange}
           searchMessage={searchMessage} />
         <SearchResults searchResult={searchResult} fetchInformation={fetchInformation} />
       </div>
-      <hr />
-      <div className='contentView'>
+      <div className='contentView' id='contentView'>
         <Header gameName={gameTitle} appId={currentAppId} showMain={showMain} showNews={showNews}
           showStats={showStats} showAchievements={showAchievements} />
         {tabToShow}
       </div>
-    </section>
+    </main>
   )
 }
 
@@ -382,4 +360,3 @@ export default App
 // to-do: add a favourites list the user can save games into or a recent searches list
 // to-do: fix props validation in component files
 // to-do: add a "show random game" button (?)
-// to-do: give left and right side of UI different bg colours

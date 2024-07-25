@@ -11,7 +11,7 @@ const SearchResults = ({ searchResult, fetchInformation }) => {
   if (resultList && resultList.length > 0) {
     return (
       <>
-        <h2>Search results:</h2>
+        <h2 className='searchResultTitle'>Search results:</h2>
         {resultList}
       </>
     )

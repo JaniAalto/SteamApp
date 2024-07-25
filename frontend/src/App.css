@@ -1,37 +1,44 @@
 #root {
-  max-width: 1600px;
+  max-width: 1400px;
   margin: 0 auto;
-  padding: 2em;
   font-family: Arial, sans-serif;
 }
 body {
-  background: white;
+  margin: 0 auto;
+  background-color: rgb(7, 10, 41);
 }
 
 h1 {
   font-family: 'Cambria', 'Times New Roman', Times, serif;
   font-size: 1.8em;
   letter-spacing: 1px;
+  margin-top: 1em;
+}
+a {
+  color: black;
 }
 
-section {
+main {
   display: flex;
   flex-direction: row;
 }
 
 .searchView {
-  max-width: 400px;
-  margin: 10px;
   flex: 1;
+  padding: 2em;
+  background-color: rgb(42, 48, 99);
+  border-style: solid;
+  border-width: 2px;
+  min-height: 800px;         /* could be done more cleanly */
 }
 .searchForm {
   background: lightgrey;
   border-style: solid;
   border-radius: 0.3em;
   border-color: rgb(8, 8, 80);
-  padding: 0.7em;
-  margin-bottom: 0.6em;
-  display: inline-block;
+  padding: 0.8em;
+  margin: 1em;
+  display: inline-flex;
 }
 
 #searchInput {
@@ -42,32 +49,48 @@ button {
   margin-left: 1em;
   padding: 0.5em;
 }
+.searchMsg {
+  margin: 1em;
+  color: white;
+}
 
+.searchResultTitle {
+  padding: 0.5em;
+  margin-top: 1em;
+  color: white;
+}
 .searchResult {
   color: rgb(32, 32, 32);
   padding: 1em 0.5em;
   font-size: 16px;
-  margin-left: 1em;
+  margin-left: 0.5em;
+  margin-right: 0.5em;
   background: rgb(239, 240, 243);
 }
 .searchResult:hover {
   cursor: pointer;
-  filter: drop-shadow(0 0 0.5em #252746aa);
+  filter: drop-shadow(0 0 0.5em #caccf0aa);
 }
-.searchMsg {
-  margin: 1em;
-}
-
+/*
 hr {
   margin-left: 0.5em;
   margin-right: 1em;
+}*/
+
+.contentView {
+  flex: 2;
+  padding-left: 2em;
+  padding-right: 2em;
+  background-color: rgb(232, 237, 238);
 }
 
 .header {
-  background: lightgrey;
-  margin-left: 1em;
-  padding: 1em;
+  background: rgb(177, 176, 179);
+  padding: 2em;
   flex: 2;
+}
+.tabButtonRow {
+  width: max-content;
 }
 .tabButton {
   background: rgb(239, 240, 243);
@@ -85,17 +108,14 @@ hr {
   border-radius: 0.3em;
 }
 
-.contentView {
-  flex: 2;
-  max-width: 1000px;
-}
-
 .mainView {
   margin: 1em;
+  padding-top: 1em;
 }
 
 .achievementView {
   margin: 1em;
+  padding-top: 1em;
 }
 .sortSelect {
   float: right;
@@ -116,8 +136,14 @@ table, th, td {
   white-space: nowrap;
 }
 
+.statsView {
+  margin: 1em;
+  padding-top: 1em;
+}
+
 .newsView {
   margin: 1em;
+  padding-top: 1em;
 }
 .newsItem {
   margin: 1em;
@@ -151,8 +177,4 @@ dialog {
 }
 .closeButton {
   float: right;
-}
-
-.statsView {
-  margin: 1em;
 }
