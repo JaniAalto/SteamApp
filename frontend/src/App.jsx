@@ -30,6 +30,7 @@ function App() {
   const [currentAppId, setCurrentAppId] = useState("")
   const [loadingAppId, setLoadingAppId] = useState("")
   const [playerCount, setPlayerCount] = useState("")
+  const [gamesTotal, setGamesTotal] = useState(111680)
 
 
   const handleInputChange = (event) => {
@@ -50,7 +51,7 @@ function App() {
     let combinedResult = []
     let lastAppId = 0
     let finished = false
-    let gamesTotal = 0
+    let totalNumber = 0
 
     // searches through all possible Steam games in batches of 10000 (max would be 50000)
     // batch size doesn't affect search speed much, 10000 updates UI fairly often and thus looks responsive
@@ -61,14 +62,14 @@ function App() {
         })
       //console.log("response", response)
       if (response.data && response.data.length > 0) {
-        gamesTotal = gamesTotal + response.data.length
+        totalNumber = totalNumber + response.data.length
         const result = response.data.filter((app) => app.name.toLowerCase().startsWith(searchTerm.toLowerCase()))
         //console.log("result", result)
 
         lastAppId = response.data[response.data.length - 1].appid
 
         combinedResult = combinedResult.concat(result)
-        setSearchMessage(`Searching... found ${combinedResult.length} out of ${gamesTotal} games...`)
+        setSearchMessage(`Searching... found ${combinedResult.length} out of ${totalNumber} games...`)
       }
       else {
         finished = true
@@ -78,8 +79,9 @@ function App() {
     while (!finished)
 
     setSearchResult(combinedResult)
-    setSearchMessage(`Found ${combinedResult.length} games out of ${gamesTotal}`)
+    setSearchMessage(`Found ${combinedResult.length} games out of ${totalNumber}`)
     searchButton.disabled = false
+    setGamesTotal(totalNumber)
   }
 
   const fetchInformation = (appId, appName) => {
@@ -303,6 +305,19 @@ function App() {
     setVisibleTab('news')
   }
 
+  const chooseRandom = async () => {
+    const randomNum = Math.floor(Math.random() * gamesTotal)
+
+    const response = await axios.get(`/api/getapplist/?max_results=1&last_appid=${randomNum}`)
+      .catch(error => {
+        console.log(error)
+      })
+    
+    if (response && response.data[0])
+      fetchInformation(response.data[0].appid, response.data[0].name)
+  }
+
+
   let tabToShow = (<></>)
   // resetting tab button colours
   if (document.getElementById('mainTab'))
@@ -334,12 +349,11 @@ function App() {
     tabToShow = <News newsList={gameNews} fetchNews={fetchNews} newsMessage={newsMessage} />
   }
 
-
   return (
     <main>
       <div className='searchView' id='searchView'>
         <SearchForm search={search} searchTerm={searchTerm} handleInputChange={handleInputChange}
-          searchMessage={searchMessage} />
+          searchMessage={searchMessage} chooseRandom={chooseRandom} />
         <SearchResults searchResult={searchResult} fetchInformation={fetchInformation} />
       </div>
       <div className='contentView' id='contentView'>
@@ -359,4 +373,3 @@ export default App
 // to-do: improve visuals with a library like React Bootstrap
 // to-do: add a favourites list the user can save games into or a recent searches list
 // to-do: fix props validation in component files
-// to-do: add a "show random game" button (?)

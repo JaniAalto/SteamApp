@@ -14,18 +14,24 @@ const Stats = ({ statsList, statsMessage }) => {
 
   // most games don't track any global aggregate values for stats
   const statsWithValues = statsList.map(stat => {
+    let statName = stat.displayName
+    if (!stat.displayName)
+      statName = stat.name
     if (stat.total)
       return (
         <div key={stat.name}>
-          <p>{stat.displayName}: {stat.total.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</p>
+          <p>{statName}: {stat.total.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</p>
         </div>
       )
   })
   const statsWithoutValues = statsList.map(stat => {
+    let statName = stat.displayName
+    if (!stat.displayName)
+      statName = stat.name
     if (!stat.total)
       return (
         <div key={stat.name}>
-          <p>{stat.displayName}</p>
+          <p>{statName}</p>
         </div>
       )
   })

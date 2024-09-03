@@ -18,6 +18,11 @@ a {
   color: black;
 }
 
+button {
+  margin-left: 1em;
+  padding: 0.5em;
+}
+
 main {
   display: flex;
   flex-direction: row;
@@ -40,14 +45,18 @@ main {
   margin: 1em;
   display: inline-flex;
 }
-
 #searchInput {
   font-size: 16px;
   background-color: white;
 }
-button {
-  margin-left: 1em;
-  padding: 0.5em;
+.searchBar {
+  display: inline-flex;
+}
+#randomButton {
+  height: fit-content;
+  align-self: center;
+  padding: 0.7em;
+  margin-left: 0.1em;
 }
 .searchMsg {
   margin: 1em;
