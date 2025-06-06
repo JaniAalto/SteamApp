@@ -21,7 +21,8 @@ const Achievements = ({ gameInfoList, percList, achievementsMessage }) => {
     if (result) {
       renderedList = renderedList.concat({
         name: stat.name, displayName: stat.displayName,
-        description: stat.description, percent: result.percent, icon: stat.icon, hidden: stat.hidden
+        description: stat.description, percent: result.percent ? result.percent : 0.0,
+        icon: stat.icon, hidden: stat.hidden
       })
     }
   })
@@ -56,19 +57,8 @@ const Achievements = ({ gameInfoList, percList, achievementsMessage }) => {
     return percentBar
   }
 
-  let achievementTable = (
-    <table><tbody>
-      {renderedList.map(stat =>
-        <tr key={stat.name}>
-          <td><img src={stat.icon} width="64" height="64" /></td>
-          <td className='nameColumn'><b>{stat.displayName}</b></td>
-          <td>{stat.description ? stat.description : "(No description available)"}</td>
-          <td>{stat.hidden ? "hidden" : ""}</td>
-          <td className='percColumn'>{createBar(stat.percent)} - {stat.percent.toFixed(1)}%</td>
-        </tr>)}
-    </tbody></table>
-  )
-  if (!renderedList.find((element) => element.hidden))
+  let achievementTable = <></>
+  if (!renderedList.find((element) => element.hidden)) {
     achievementTable = (
       <table><tbody>
         {renderedList.map(stat =>
@@ -76,10 +66,25 @@ const Achievements = ({ gameInfoList, percList, achievementsMessage }) => {
             <td><img src={stat.icon} width="64" height="64" /></td>
             <td className='nameColumn'><b>{stat.displayName}</b></td>
             <td>{stat.description ? stat.description : "(No description available)"}</td>
-            <td className='percColumn'>{createBar(stat.percent)} - {stat.percent.toFixed(1)}%</td>
+            <td className='percColumn'>{createBar(stat.percent)} - {Number(stat.percent)?.toFixed(1)}%</td>
           </tr>)}
       </tbody></table>
     )
+  }
+  else {
+    achievementTable = (
+      <table><tbody>
+        {renderedList.map(stat =>
+          <tr key={stat.name}>
+            <td><img src={stat.icon} width="64" height="64" /></td>
+            <td className='nameColumn'><b>{stat.displayName}</b></td>
+            <td>{stat.description ? stat.description : "(No description available)"}</td>
+            <td>{stat.hidden ? "hidden" : ""}</td>
+            <td className='percColumn'>{createBar(stat.percent)} - {Number(stat.percent)?.toFixed(1)}%</td>
+          </tr>)}
+      </tbody></table>
+    )
+  }
 
   return (
     <div className='achievementView'>

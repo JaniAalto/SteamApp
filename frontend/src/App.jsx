@@ -60,11 +60,11 @@ function App() {
         .catch(error => {
           console.log(error)
         })
-      //console.log("response", response)
+      // console.log("response of 10000", response)
       if (response.data && response.data.length > 0) {
         totalNumber = totalNumber + response.data.length
         const result = response.data.filter((app) => app.name.toLowerCase().startsWith(searchTerm.toLowerCase()))
-        //console.log("result", result)
+        // console.log("filtered result", result)
 
         lastAppId = response.data[response.data.length - 1].appid
 
@@ -108,7 +108,7 @@ function App() {
 
     axios.get(`/api/getsharkinfo/?appid=${appId}`)
       .then(response => {
-        //console.log("getsharkinfo response.data", response.data)
+        // console.log("getsharkinfo response.data", response.data)
         if (response.data) {
           //setMainMessage("")
           setSharkInfo(response.data)
@@ -155,7 +155,7 @@ function App() {
           setStatsMessage("No stats found")
           console.log("No achievements or stats found")
         }
-        //console.log("fetchAchievements response.data", response.data)
+        // console.log("fetchAchievements response.data", response.data)
 
         if (response.data.achievements) {
           setAchievements(response.data.achievements)
@@ -171,7 +171,7 @@ function App() {
         if (response.data.stats && response.data.stats.length > 0) {
           setGameStats(response.data.stats)
           setStatsMessage("")
-          //console.log("Stats: ", response.data.stats)
+          // console.log("Stats: ", response.data.stats)
 
           fetchAggregatedStats(appId, response.data.stats)
         }
@@ -183,7 +183,6 @@ function App() {
       })
       .catch(error => {
         console.log(error)
-        //console.log("loading", loading)
         //console.log("appId, loadingAppId", appId, ", ", loadingAppId)
         if (appId === loadingAppId && loading) {
           console.log("Timed out")
@@ -198,7 +197,7 @@ function App() {
   const fetchPercentages = (appId) => {
     axios.get(`/api/getachievs/?appid=${appId}`)
       .then(response => {
-        //console.log("getachievs response.data", response.data)
+        // console.log("getachievs response.data", response.data)
         if (response.data) {
           setPercentages(response.data)
         }
@@ -312,7 +311,7 @@ function App() {
       .catch(error => {
         console.log(error)
       })
-    
+
     if (response && response.data[0])
       fetchInformation(response.data[0].appid, response.data[0].name)
   }
@@ -349,19 +348,25 @@ function App() {
     tabToShow = <News newsList={gameNews} fetchNews={fetchNews} newsMessage={newsMessage} />
   }
 
+  // let mql = window.matchMedia("(max-width: 600px)")
+  // console.log("mql", mql)
+
   return (
-    <main>
-      <div className='searchView' id='searchView'>
-        <SearchForm search={search} searchTerm={searchTerm} handleInputChange={handleInputChange}
-          searchMessage={searchMessage} chooseRandom={chooseRandom} />
-        <SearchResults searchResult={searchResult} fetchInformation={fetchInformation} />
-      </div>
-      <div className='contentView' id='contentView'>
-        <Header gameName={gameTitle} appId={currentAppId} showMain={showMain} showNews={showNews}
-          showStats={showStats} showAchievements={showAchievements} />
-        {tabToShow}
-      </div>
-    </main>
+    <>
+      <main>
+        <div className='searchView' id='searchView'>
+          <SearchForm search={search} searchTerm={searchTerm} handleInputChange={handleInputChange}
+            searchMessage={searchMessage} chooseRandom={chooseRandom} />
+          <SearchResults searchResult={searchResult} fetchInformation={fetchInformation} />
+        </div>
+        <div className='contentView' id='contentView'>
+          <Header gameName={gameTitle} appId={currentAppId} showMain={showMain} showNews={showNews}
+            showStats={showStats} showAchievements={showAchievements} />
+          {tabToShow}
+        </div>
+      </main>
+      <div className='footer'>Jani Aalto 2024</div>
+    </>
   )
 }
 
